@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <title>Registro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}"> <!--Hereda el mismo CSS que LOGIN-->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
 </head>
 <body>
-
     <!-- ALERTA FUERA DEL CONTAINER -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -23,32 +22,36 @@
         {% endif %}
     {% endwith %}
 
-    <!-- CONTAINER PRINCIPAL -->
     <div class="container">
-        <!-- FORMULARIO -->
         <div class="formcontainer">
-            <h1>Bienvenidos a LavaExpress</h1>
-            <form action="/acceso-login" method="POST">
+            <h1>Registro</h1>
+            <form action="/register" method="POST">
                 <div class="form-group">
-                    <label for="username">Email</label>
-                    <input type="email" id="username" name="username" placeholder="Nombre de usuario" required>
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" placeholder="Ingrese su nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="apellido">Apellido Paterno</label>
+                    <input type="text" id="apellido" name="apellido" placeholder="Ingrese su apellido" required>
+                </div>
+                <div class="form-group">
+                    <label for="correo">Email</label>
+                    <input type="email" id="correo" name="correo" placeholder="Ingrese su correo" required>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" placeholder="Ingrese su password" required>
                 </div>
-                <button type="submit">Login</button>
-                <p class="signup-link">¿No tiene cuenta? <a href="{{url_for('register')}}">Registrarse</a></p> <!--Lo envias a la función llamada Register-->
+                <button type="submit">Registrarse</button>
+                <p class="signup-link">¿Ya tiene cuenta? <a href="{{ url_for('index') }}">Iniciar sesión</a></p>
             </form>
         </div>
 
-        <!-- IMAGEN LATERAL -->
         <div class="login-image">
-            <img src="{{url_for('static', filename='img/logoLavaExpress.png')}}" alt="Imagen Login">
+            <img src="{{ url_for('static', filename='img/logoLavaExpress.png') }}" alt="Imagen Registro">
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

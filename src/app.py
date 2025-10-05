@@ -33,7 +33,7 @@ def login():
         cur=mysql.connection.cursor()
 
         #Este SELECT solo buscará que el correo ingresado exista en la BD
-        cur.execute('SELECT u.CORREO, l.PASS, r.NOMROL, r.IDROL, u.IDUSER FROM USUARIO u, LOGIN l, ROLES r WHERE u.IDUSER = l.IDUSER and u.IDROL = r.IDROL  and u.CORREO = %s',(_correo,))
+        cur.execute('SELECT u.IDUSER, r.IDROL, u.CORREO, u.PASS FROM USUARIO u, ROLES r WHERE u.CORREO = %s',(_correo,))
 
         #Variable de inicio de sesión
         account = cur.fetchone()
@@ -50,10 +50,9 @@ def login():
 
                 #Identificación de rol
                 if account['IDROL'] == 1: #Rol administrativo
-                    return render_template('admin.html') #Manda a ruta Admin si se cumple los requisitos
+                    return render_template('administrador/admin.html') #Manda a ruta Admin si se cumple los requisitos
                 else: #Rol cliente
-                    flash("Acceso denegado: solo administradores", "danger")
-                    return redirect(url_for('index'))
+                    return render_template('cliente/client.html')
             else:
                 flash("Contraseña incorrecta", "warning")
                 return redirect(url_for('index'))
@@ -63,7 +62,47 @@ def login():
         
     return render_template('login.html')
         
+#Función de Register
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST' and 'nombre' in request.form and 'apellido' in request.form and 'correo' in request.form and 'password' in request.form:
 
+        #Capturamos los datos que el usuario ingreso
+        nombre = request.form['nombre']
+        apaterno = request.form['apellido']
+        correo = request.form['correo']
+        password = request.form['password']
+
+        #Creamos cursor
+        cur=mysql.connection.cursor()
+
+        #Obtener el ultimo ID de USUARIO
+        cur.execute('SELECT MAX(IDUSER) AS max_id FROM USUARIO')
+        result = cur.fetchone()
+        id = (result['max_id'] or 0) + 1
+        
+
+        #Este INSERT se realizará en la tabla USUARIO
+        cur.execute('INSERT INTO USUARIO (IDUSER, IDROL, NOMBRE, APATERNO, CORREO, PASS) VALUES (%s,%s,%s,%s, %s, %s)', (id,2, nombre, apaterno, correo, password))
+
+
+        #Se confirma el INSERT
+        mysql.connection.commit()
+
+        #Se cierra el cursor
+        cur.close()
+
+        flash("Usuario Registrado de manera exitosa","success")
+        return redirect(url_for('index'))
+    else:
+        return render_template('register.html')
+
+
+#Administrador
+#Función Inicio Administrador      
+@app.route('/inicioAdmin')
+def inicioAdmin():
+    return render_template('administrador/admin.html')
 
 
 #Redireccionar si el usuario busca una página no existente

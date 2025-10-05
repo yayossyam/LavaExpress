@@ -1,137 +1,160 @@
-
-*{
-box-sizing: border-box;
-margin: 0;
-padding: 0;
+/* RESET */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
+/* BODY */
 body {
-font-family: Arial, sans-serif;
-background-color: #f3f3f3;
-display: flex;
-justify-content: center;
-align-items: center;
-height: 100vh;
-width: 100vw;
+    font-family: Arial, sans-serif;
+    background-color: #f3f3f3;
+    display: flex;
+    flex-direction: column; /* Para que la alerta y el container estén en columna */
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    width: 100vw;
+    padding-top: 70px; /* Separación superior */
 }
 
+/* CONTENEDOR PRINCIPAL */
 .container {
-display: flex;
-/* width: 800px; */
-/* height: 500px; */
-box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-border-radius: 10px;
-overflow: hidden;
-background-color: #fff;
+    display: flex;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #fff;
+    max-width: 800px;
+    width: 90%;
 }
 
-.container .login-image {
-display: flex;
-flex: 1;
-overflow: hidden;
-justify-content: center;
-align-items: center;
-}
-
-.container .login-image img {
-/* width: 100%; */
-/* height: 100%; */
-object-fit: cover;
-}
+/* FORMULARIO */
 .container .formcontainer {
-flex: 1;
-padding: 40px;
-display: flex;
-flex-direction: column;
-justify-content: center;
-background: bisque;
+    flex: 1;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: bisque;
 }
 
 .container .formcontainer h1 {
-margin-bottom: 20px;
-font-size: 24px;
-color: #333;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
 }
 
 .container .formcontainer .form-group {
-margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 .container .formcontainer .form-group label {
-display: block;
-font-weight: bold;
-margin-bottom: 5px;
-color: #555;
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
 }
 
 .container .formcontainer .form-group input {
-width: 100%;
-padding: 10px;
-font-size: 16px;
-border: 1px solid #ddd;
-border-radius: 5px;
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
 }
 
 .container .formcontainer button {
-padding: 12px;
-font-size: 16px;
-font-weight: bold;
-color: #fff;
-background-color: #5f5158;
-border: none;
-border-radius: 5px;
-cursor: pointer;
-transition: background-color 0.3s ease;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #5f5158;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 .container .formcontainer button:hover {
-background-color: #818a94;
+    background-color: #818a94;
 }
 
 .container .formcontainer .signup-link {
-margin-top: 20px;
-font-size: 14px;
-text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    text-align: center;
 }
 
 .container .formcontainer .signup-link a {
-color: #007BFF;
-text-decoration: none;
+    color: #007BFF;
+    text-decoration: none;
 }
 
 .container .formcontainer .signup-link a:hover {
-text-decoration: underline;
+    text-decoration: underline;
 }
 
+/* IMAGEN LATERAL */
+.container .login-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
 
+.container .login-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* MEDIA QUERY PARA MÓVILES */
 @media (max-width: 450px) {
-.container {
-flex-direction: column; /* Cambia a disposición vertical */
-width: 100vw !important; /* Ancho completo */
-height: auto !important; /* Ajusta la altura al contenido */
-max-width: none;
+    .container {
+        flex-direction: column;
+        width: 100vw;
+        max-width: none;
+    }
+    .container .formcontainer {
+        order: 2;
+    }
+    .container .login-image {
+        order: 1;
+        height: 200px; /* Ajuste opcional para móviles */
+    }
 }
 
-.container .formcontainer{
-    order: 2;
+/* ALERTAS */
+/* ALERTAS FLOTANTES */
+.alert-container {
+    position: fixed;      /* Hace que flote sobre todo */
+    top: 7px;            /* Separación desde la parte superior */
+    left: 50%;            /* Centrado horizontal */
+    transform: translateX(-50%);
+    z-index: 1000;        /* Encima de todo */
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
 }
 
-.container .login-image  {
-order: 1;
-}
-
+.alert-title {
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
 }
 
 .alert {
-    width: 100%;
-    max-width: 400px; /* igual que el form para mantener estética */
-    margin: 20px auto; /* separa de la parte superior y centra */
     padding: 15px 20px;
     border-radius: 8px;
     font-size: 14px;
     font-weight: bold;
-    text-align: center;
+    line-height: 1.5;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    margin: 0;             /* Eliminamos márgenes que empujaban el contenido */
 }
 
 /* Colores según tipo de alerta de Flask */
@@ -146,4 +169,3 @@ order: 1;
     color: #856404;
     border: 1px solid #ffeeba;
 }
-
