@@ -97,6 +97,10 @@ def register():
     else:
         return render_template('register.html')
 
+#Funcion de Reportes
+@app.route('/reporte')
+def inicioreporte():
+    return render_template('administrador/reportes/index.html')
 
 #Administrador
 #Función Inicio Administrador      
