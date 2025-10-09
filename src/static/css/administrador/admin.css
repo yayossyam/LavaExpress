@@ -107,6 +107,16 @@ body {
     margin-bottom: 15px;
 }
 
+.header-right {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0 20px; /* evita que el letrero llegue exactamente al borde */
+    box-sizing: border-box;
+}
+
+
 .icon-logo {
     width: 70px;
     height: 70px;
@@ -128,14 +138,17 @@ body {
     background: #fff;
     border: 2px solid #b7d9f3;
     border-radius: 20px;
-    padding: 12px 40px;    /* padding más horizontal */
-    width: 100%;           /* ocupa todo el espacio del contenedor */
-    font-size: 14px;
+    padding: 12px 40px;               /* mantengo la altura (12px arriba/abajo) */
+    width: 100%;
+    max-width: calc(100% - 80px);     /* <- controla cuánto deja de los bordes */
+    font-size: 16px;
     color: var(--color-darkblue);
-    text-align: center;
+    text-align: left;
     user-select: none;
-    max-width: none; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    font-weight: 600;
 }
+
 
 /* === ÁREA DE CONTENIDO === */
 .content {

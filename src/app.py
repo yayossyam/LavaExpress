@@ -108,6 +108,10 @@ def inicioreporte():
 def inicioAdmin():
     return render_template('administrador/admin.html')
 
+#Función CRUD Materia Prima
+@app.route('/materiaPrima')
+def materiaPrima():
+    return render_template('administrador/materiaPrima.html')
 
 #Redireccionar si el usuario busca una página no existente
 def pagina_no_encontrada(error):
