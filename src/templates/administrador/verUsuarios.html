@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Servicios</title>
+    <title>Inicio</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/servicio.css')}}">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"> <!--Fuentes de Letra-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/verUsuarios.css')}}">
 </head>
 <body>
     <!-- CONTENEDOR PRINCIPAL -->
@@ -17,6 +17,8 @@
             <div class="logo-box">
                 <h2>LavaSoft</h2>
             </div>
+
+            <!-- Menu -->
             <nav class="menu">
                 <ul>
                     <li><a href="#">Registrar Usuario</a></li>
@@ -46,51 +48,44 @@
                     <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
                     <h1>LavaExpress</h1>
                 </div>
+
                 <div class="header-right">
-                    <div class="search-bar display-only">Servicios</div>
+                    <div class="search-bar display-only">Usuarios</div>
                 </div>
             </header>
 
             <!-- CUERPO PRINCIPAL -->
             <main class="content">
 
-                <!-- BLOQUE PRINCIPAL EN ROW -->
-                <div class="servicio-container">
+                <!-- LINEAS DECORATIVAS -->
+                <div class="decor decor-left"></div>
+                <div class="decor decor-right"></div>
 
-                    <!-- SERVICIOS EXISTENTES -->
-                    <div class="existing">
-                        <h2>Servicios existentes</h2>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for servicio in servicios %}
-                                <tr>
-                                    <td>{{ servicio.nombre }}</td>
-                                    <td>
-                                        <button class="btn-edit">✏️</button>
-                                        <button class="btn-delete">🗑️</button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- NUEVO SERVICIO -->
-                    <div class="new">
-                        <h2>Nuevo servicio</h2>
-                        <form class="new-form">
-                            <label for="nombre">Nombre:</label>
-                            <input type="text" id="nombre" placeholder="Nombre del servicio">
-                            <button type="button" class="btn-save">Guardar</button>
-                        </form>
-                    </div>
-                </div>
+                <!-- TABLA DE USUARIOS -->
+                <section class="usuarios-container card">
+                    <h2>Usuarios Registrados</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Rol</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for usuario in usuarios %}
+                            <tr>
+                                <td>{{ usuario.nombre }}</td>
+                                <td>{{ usuario.rol }}</td>
+                                <td>
+                                    <button class="btn-edit">✏️</button>
+                                    <button class="btn-delete">🗑️</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
 
                 <!-- BOTÓN REGRESAR CENTRADO DEBAJO -->
                 <div class="back-container">

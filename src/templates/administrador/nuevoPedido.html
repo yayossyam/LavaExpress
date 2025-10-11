@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Servicios</title>
+    <title>Nuevo Pedido</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/servicio.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/nuevoPedido.css') }}">
 </head>
 <body>
     <!-- CONTENEDOR PRINCIPAL -->
@@ -17,6 +17,8 @@
             <div class="logo-box">
                 <h2>LavaSoft</h2>
             </div>
+
+            <!-- Menu -->
             <nav class="menu">
                 <ul>
                     <li><a href="#">Registrar Usuario</a></li>
@@ -46,56 +48,39 @@
                     <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
                     <h1>LavaExpress</h1>
                 </div>
+
                 <div class="header-right">
-                    <div class="search-bar display-only">Servicios</div>
+                    <div class="display-only">Nuevo Pedido</div>
                 </div>
             </header>
 
             <!-- CUERPO PRINCIPAL -->
             <main class="content">
 
-                <!-- BLOQUE PRINCIPAL EN ROW -->
-                <div class="servicio-container">
+                <!-- TARJETON NUEVO PEDIDO -->
+                <section class="card">
+                    <form class="pedido-form">
+                        <label for="nombre">Nombre completo:</label>
+                        <input type="text" id="nombre" placeholder="Nombre del cliente">
 
-                    <!-- SERVICIOS EXISTENTES -->
-                    <div class="existing">
-                        <h2>Servicios existentes</h2>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for servicio in servicios %}
-                                <tr>
-                                    <td>{{ servicio.nombre }}</td>
-                                    <td>
-                                        <button class="btn-edit">✏️</button>
-                                        <button class="btn-delete">🗑️</button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                        <label for="fecha">Fecha de entrega:</label>
+                        <input type="date" id="fecha">
 
-                    <!-- NUEVO SERVICIO -->
-                    <div class="new">
-                        <h2>Nuevo servicio</h2>
-                        <form class="new-form">
-                            <label for="nombre">Nombre:</label>
-                            <input type="text" id="nombre" placeholder="Nombre del servicio">
-                            <button type="button" class="btn-save">Guardar</button>
-                        </form>
-                    </div>
-                </div>
+                        <label for="tipo">Tipo de servicio:</label>
+                        <input type="text" id="tipo" placeholder="Lavado, Planchado, etc.">
 
-                <!-- BOTÓN REGRESAR CENTRADO DEBAJO -->
-                <div class="back-container">
-                    <button class="btn-back">Regresar</button>
-                </div>
+                        <label for="prendas">Prendas del cliente:</label>
+                        <input type="text" id="prendas" placeholder="Cantidad y tipo de prendas">
+
+                        <label for="costo">Costo final:</label>
+                        <input type="number" id="costo" placeholder="$0.00">
+
+                        <div class="buttons">
+                            <button type="button" class="btn btn-outline">Regresar</button>
+                            <button type="button" class="btn btn-primary">Guardar Pedido</button>
+                        </div>
+                    </form>
+                </section>
             </main>
         </div>
     </div>

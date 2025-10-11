@@ -108,10 +108,32 @@ def inicioreporte():
 def inicioAdmin():
     return render_template('administrador/admin.html')
 
+#Ver Usuario
+@app.route('/verUsuarios')
+def verUsuarios():
+    return render_template('administrador/verUsuarios.html')
+
+#Pedidos
+@app.route('/pedidos')
+def pedidos():
+    return render_template('administrador/pedidos.html')
+
+#Nuevo Pedido
+@app.route('/nuevoPedido')
+def nuevoPedido():
+    return render_template('administrador/nuevoPedido.html')
+
 #Función CRUD Materia Prima
 @app.route('/materiaPrima')
 def materiaPrima():
     return render_template('administrador/materiaPrima.html')
+
+#Función CRUD Servicios
+@app.route('/servicio')
+def servicios():
+    return render_template('administrador/servicio.html')
+
+
 
 #Redireccionar si el usuario busca una página no existente
 def pagina_no_encontrada(error):
