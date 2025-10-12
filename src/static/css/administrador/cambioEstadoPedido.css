@@ -74,7 +74,6 @@ body {
     transition: all 0.3s;
 }
 
-/* HOVER Y ACTIVE DEL MENÚ */
 .menu a:hover {
     background: var(--color-blue);
     color: #fff;
@@ -110,7 +109,7 @@ body {
 .header-right {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items:flex-start;
     width: 100%;
     padding: 0 20px;
     box-sizing: border-box;
@@ -131,7 +130,6 @@ body {
     margin: 0;
 }
 
-/* Barra de "letrero" */
 .display-only {
     cursor: default;
     background: #fff;
@@ -148,138 +146,146 @@ body {
     font-weight: 600;
 }
 
-
 /* === ÁREA DE CONTENIDO === */
 .content {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     position: relative;
-    margin-bottom: 40px;
     padding: 20px;
-    gap: 0px;
-    width: 100%;
+    gap: 20px;
 }
 
-/* Letrero Pedidos / Usuarios */
-.display-only {
-    cursor: default;
+/* CONTENEDOR BUSCAR PEDIDO */
+.buscar-pedido-container {
+    width: 60%;
     background: #fff;
-    border: 2px solid #b7d9f3;
-    border-radius: 20px;
-    padding: 12px 40px;
-    font-size: 16px;
-    color: var(--color-darkblue);
-    text-align: left;
-    user-select: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    font-weight: 600;
-    margin-bottom: 0;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 1;
 }
 
-/* BOTÓN NUEVO PEDIDO */
-.pedido-actions {
-    display: flex;           /* activa flexbox en el contenedor */
-    justify-content: flex-end;  /* alinea el botón a la izquierda */
-    width: 100%;             /* ocupa todo el ancho disponible */
-    margin-bottom: 3px;      /* espacio antes de la tabla */
-    margin: 0;
-    padding: 0;
+.buscar-pedido-container h2 {
+    font-family: 'Fredoka One', cursive;
+    color: var(--color-blue);
+    text-align: center;
 }
 
-/* BOTÓN NUEVO PEDIDO */
-.btn-new {
+.form-buscar {
+    display: flex;
+    flex-direction: column; /* cambia a columna */
+    align-items: flex-start; /* alinea label e input al inicio */
+    gap: 10px; /* espacio entre label e input */
+}
+
+
+.form-buscar input { 
+    width: 100%; /* ocupa todo el ancho del contenedor */
+    max-width: 600px; /* opcional: límite máximo de ancho */
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    border: 1px solid #b7d9f3;
+    outline: none;
+}
+
+.btn-search {
     background-color: var(--color-blue);
-    color: white;
-    padding: 10px 20px;
+    color: #fff;
+    padding: 8px 16px;
     border-radius: var(--radius);
     border: none;
     cursor: pointer;
     font-weight: 600;
-    transition: all 0.3s;
-    margin: 0px;  /* lo deja justo debajo del letrero */
-    margin-bottom: 3px; /* mantiene el espacio antes de la tabla */
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
 }
 
-.btn-new:hover {
-    opacity: 0.9;
-    transform: scale(1.03);
+.btn-search:hover {
+    background-color: var(--color-darkblue);
 }
 
-/* === CONTENEDOR TABLA DE PEDIDOS === */
-.usuarios-container {
-    width: 100%;
-    max-width: 100%;
+/* CONTENEDOR TABLA DE PEDIDOS */
+.pedidos-container {
+    width: 80%;
     background: #fff;
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 20px;
     z-index: 1;
 }
 
-/* TITULO */
-.usuarios-container h2 {
+.pedidos-container h2 {
     font-family: 'Fredoka One', cursive;
-    font-size: 1.6rem;
     color: var(--color-blue);
     text-align: center;
-    margin-bottom: 3px;
 }
 
-/* TABLA DE PEDIDOS */
-table {
+.pedidos-container table {
     width: 100%;
     border-collapse: collapse;
-    border: 2px solid var(--color-blue);
-    border-radius: 8px;
+    border-radius: var(--radius);
     overflow: hidden;
 }
 
-th, td {
+.pedidos-container th,
+.pedidos-container td {
     padding: 10px;
     text-align: center;
-    border-bottom: 2px solid #bcd4e6;
+    border-bottom: 2px solid #b7d9f3;
     color: var(--color-text);
 }
 
-th {
-    background-color: #eaf4fc;
+.pedidos-container th {
+    background-color: #b7d9f3;
     color: var(--color-blue);
     font-weight: 700;
 }
 
-/* BOTONES EDITAR / ELIMINAR */
-.btn-edit, .btn-delete {
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-size: 1.2rem;
-}
-
-.btn-edit:hover {
-    color: var(--color-blue);
-}
-
-.btn-delete:hover {
-    color: red;
-}
-
 /* === RESPONSIVE === */
 @media (max-width: 900px) {
-    .decor {
-        display: none;
+    .content {
+        gap: 15px;
     }
 
-    .pedido-actions,
-    .usuarios-container {
-        width: 95%;
-        max-width: 95%;
+    .buscar-pedido-container, .pedidos-container {
+        width: 100%;
+        padding: 15px;
     }
+
+    .form-buscar {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-buscar input {
+        width: 100%;
+    }
+}
+
+/*Boton Regresar*/
+.back-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding-top: 10px;
+}
+
+.btn-back {
+    background-color: #ccc;
+    color: #333;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-back:hover {
+    background-color: #b7b7b7;
 }

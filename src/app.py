@@ -123,10 +123,31 @@ def pedidos():
 def nuevoPedido():
     return render_template('administrador/nuevoPedido.html')
 
+#Cambiar Estado de Pedido
+@app.route('/cambioEstadoPedido')
+def cambioEstadoPedido():
+    return render_template('administrador/cambioEstadoPedido.html')
+
+#Proveedores
+@app.route('/proveedores')
+def proveedores():
+    return render_template('administrador/proveedores.html')
+
+#Compra Materia Prima
+@app.route('/compraMateriaPrima')
+def compraMateriaPrima():
+    return render_template('administrador/compraMateriaPrima.html')
+
+#Catalogo Productos
+@app.route('/catalogoProductos')
+def catalogoProductos():
+    return render_template('administrador/catalogoProductos.html')
+
 #Función CRUD Materia Prima
 @app.route('/materiaPrima')
 def materiaPrima():
     return render_template('administrador/materiaPrima.html')
+
 
 #Función CRUD Servicios
 @app.route('/servicio')

@@ -164,6 +164,14 @@ body {
     z-index: 1;
 }
 
+.card-title {
+    text-align: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 24px;
+    color: var(--color-darkblue);
+    margin-bottom: 20px; /* espacio entre el letrero y el formulario */
+}
+
 /* === FORMULARIO NUEVO PEDIDO === */
 .pedido-form {
     display: flex;

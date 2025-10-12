@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compra Materia Prima</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/compraMateriaPrima.css')}}">
+</head>
+<body>
+    <div class="app">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo-box">
+                <h2>LavaSoft</h2>
+            </div>
+            <nav class="menu">
+                <ul>
+                    <li><a href="#">Registrar Usuario</a></li>
+                    <li><a href="#">Pedidos</a></li>
+                    <li><a href="#">Cambiar Estado de Pedido</a></li>
+                    <li><a href="#">Proveedores</a></li>
+                    <li><a href="#" class="active">Compra Materia Prima</a></li>
+                    <li><a href="#">Catálogo Productos</a></li>
+                    <li><a href="#">Categoría de Prendas</a></li>
+                    <li><a href="#">Catálogo de Prendas</a></li>
+                    <li><a href="#">Cargas</a></li>
+                    <li><a href="#">Reportes</a></li>
+                    <li><a href="#">Rol</a></li>
+                    <li><a href="#">Materia Prima</a></li>
+                    <li><a href="#">Servicios</a></li>
+                    <li><a href="#">Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <div class="main">
+
+            <!-- ENCABEZADO -->
+            <header class="topbar">
+                <div class="header-center">
+                    <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
+                    <h1>LavaExpress</h1>
+                </div>
+                <div class="header-right">
+                    <div class="search-bar display-only">Compra Materia Prima</div>
+                </div>
+            </header>
+
+            <!-- CUERPO PRINCIPAL -->
+            <main class="content">
+
+                <!-- BLOQUE COMPRA GENERAL -->
+                <div class="block compra-general">
+                    <h2>Compra General</h2>
+                    <div class="form-row">
+                        <div class="field-group">
+                            <label for="id-compra">ID Compra</label>
+                            <input type="text" id="id-compra" placeholder="ID Compra">
+                        </div>
+                        <div class="field-group">
+                            <label for="proveedor">Proveedor</label>
+                            <select id="proveedor">
+                                {% for proveedor in proveedores %}
+                                <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label for="fecha">Fecha</label>
+                            <input type="date" id="fecha">
+                        </div>
+                        <div class="field-group">
+                            <label for="empleado">Empleado</label>
+                            <select id="empleado">
+                                {% for empleado in empleados %}
+                                <option value="{{ empleado.id }}">{{ empleado.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BLOQUE COMPRA DETALLE -->
+                <div class="block compra-detalle">
+                    <h2>Compra Detalle</h2>
+                    <table class="table-compra">
+                        <thead>
+                            <tr>
+                                <th>Nombre del Producto</th>
+                                <th>Cantidad Comprada</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for producto in productos %}
+                            <tr>
+                                <td>{{ producto.nombre }}</td>
+                                <td><input type="number" min="0" placeholder="0"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- BOTONES EN FILA -->
+                <div class="btn-row">
+                    <button type="button" class="btn-save">Guardar Compra</button>
+                    <button class="btn-back">Regresar</button>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

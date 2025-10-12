@@ -9,7 +9,7 @@
     --sidebar-width: 240px;
 }
 
-/* === ESTILO GENERAL === */
+/* === RESETEO GENERAL === */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -60,7 +60,6 @@ body {
 .menu li {
     padding: 8px 0;
     border-bottom: 2px solid #b7d9f3;
-    transition: background 0.3s;
 }
 
 .menu a {
@@ -74,7 +73,6 @@ body {
     transition: all 0.3s;
 }
 
-/* HOVER Y ACTIVE DEL MENÚ */
 .menu a:hover {
     background: var(--color-blue);
     color: #fff;
@@ -88,6 +86,8 @@ body {
 /* === CONTENIDO PRINCIPAL === */
 .main {
     flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 /* === ENCABEZADO === */
@@ -96,7 +96,7 @@ body {
     display: flex;
     align-items: center;
     flex-direction: column;
-    margin-bottom: 25px;
+    margin-bottom: 15px;
 }
 
 .header-center {
@@ -104,16 +104,14 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .header-right {
     display: flex;
     justify-content: center;
-    align-items: center;
     width: 100%;
     padding: 0 20px;
-    box-sizing: border-box;
 }
 
 .icon-logo {
@@ -128,10 +126,8 @@ body {
     font-family: 'Fredoka One', cursive;
     font-size: 32px;
     color: var(--color-darkblue);
-    margin: 0;
 }
 
-/* Barra de "letrero" */
 .display-only {
     cursor: default;
     background: #fff;
@@ -143,143 +139,123 @@ body {
     font-size: 16px;
     color: var(--color-darkblue);
     text-align: left;
-    user-select: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
-
-/* === ÁREA DE CONTENIDO === */
+/* === CONTENIDO === */
 .content {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    position: relative;
-    margin-bottom: 40px;
+    gap: 20px;
     padding: 20px;
-    gap: 0px;
-    width: 100%;
 }
 
-/* Letrero Pedidos / Usuarios */
-.display-only {
-    cursor: default;
-    background: #fff;
-    border: 2px solid #b7d9f3;
-    border-radius: 20px;
-    padding: 12px 40px;
-    font-size: 16px;
-    color: var(--color-darkblue);
-    text-align: left;
-    user-select: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    font-weight: 600;
-    margin-bottom: 0;
-}
-
-/* BOTÓN NUEVO PEDIDO */
-.pedido-actions {
-    display: flex;           /* activa flexbox en el contenedor */
-    justify-content: flex-end;  /* alinea el botón a la izquierda */
-    width: 100%;             /* ocupa todo el ancho disponible */
-    margin-bottom: 3px;      /* espacio antes de la tabla */
-    margin: 0;
-    padding: 0;
-}
-
-/* BOTÓN NUEVO PEDIDO */
-.btn-new {
-    background-color: var(--color-blue);
-    color: white;
-    padding: 10px 20px;
-    border-radius: var(--radius);
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s;
-    margin: 0px;  /* lo deja justo debajo del letrero */
-    margin-bottom: 3px; /* mantiene el espacio antes de la tabla */
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-}
-
-.btn-new:hover {
-    opacity: 0.9;
-    transform: scale(1.03);
-}
-
-/* === CONTENEDOR TABLA DE PEDIDOS === */
-.usuarios-container {
-    width: 100%;
-    max-width: 100%;
+/* === BLOQUE PRINCIPAL DE CATALOGO === */
+.catalogo-productos {
+    padding: 0; /* quitamos padding para que el título azul quede al borde */
     background: #fff;
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    z-index: 1;
-}
-
-/* TITULO */
-.usuarios-container h2 {
-    font-family: 'Fredoka One', cursive;
-    font-size: 1.6rem;
-    color: var(--color-blue);
-    text-align: center;
-    margin-bottom: 3px;
-}
-
-/* TABLA DE PEDIDOS */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    border: 2px solid var(--color-blue);
-    border-radius: 8px;
     overflow: hidden;
 }
 
-th, td {
-    padding: 10px;
+/* === TITULO DEL BLOQUE CON FONDO COMPLETO Y BORDER-RADIUS === */
+.catalogo-productos h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    color: #fff;
+    background-color: var(--color-blue);
     text-align: center;
-    border-bottom: 2px solid #bcd4e6;
+    margin: 0; /* elimina márgenes para pegar al contenedor */
+    padding: 15px 0; /* altura del título */
+    border-radius: var(--radius) var(--radius) 0 0; /* esquinas superiores redondeadas */
+}
+
+/* === TABLA DE PRODUCTOS === */
+.table-catalogo {
+    width: 100%;
+    border-collapse: collapse;
+    border: 2px solid var(--color-blue);
+    border-radius: 0 0 var(--radius) var(--radius); /* esquinas inferiores redondeadas */
+    overflow: hidden;
+}
+
+.table-catalogo th, .table-catalogo td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #ccc;
     color: var(--color-text);
 }
 
-th {
+.table-catalogo th {
     background-color: #eaf4fc;
     color: var(--color-blue);
     font-weight: 700;
 }
 
-/* BOTONES EDITAR / ELIMINAR */
-.btn-edit, .btn-delete {
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-size: 1.2rem;
+.table-catalogo tr:hover {
+    background-color: #f0f8ff;
 }
 
-.btn-edit:hover {
+/* === FORMULARIOS Y BOTONES GENERALES === */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+label {
     color: var(--color-blue);
+    font-weight: 600;
 }
 
-.btn-delete:hover {
-    color: red;
+input {
+    padding: 8px;
+    border-radius: 8px;
+    border: 2px solid var(--color-blue);
+    outline: none;
+    transition: all 0.2s ease;
 }
 
-/* === RESPONSIVE === */
-@media (max-width: 900px) {
-    .decor {
-        display: none;
-    }
+input:focus {
+    box-shadow: 0 0 5px rgba(43, 134, 192, 0.5);
+}
 
-    .pedido-actions,
-    .usuarios-container {
-        width: 95%;
-        max-width: 95%;
-    }
+.btn-save {
+    background-color: var(--color-blue);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-save:hover {
+    background-color: var(--color-darkblue);
+}
+
+/* === BOTÓN REGRESAR === */
+.back-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 10px;
+}
+
+.btn-back {
+    background-color: #ccc;
+    color: #333;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-back:hover {
+    background-color: #b7b7b7;
 }

@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio</title>
+    <title>Catálogo Productos</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"> <!--Fuentes de Letra-->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/pedidos.css')}}">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/catalogoProductos.css') }}">
 </head>
 <body>
-    <!-- CONTENEDOR PRINCIPAL -->
     <div class="app">
 
         <!-- SIDEBAR -->
@@ -17,8 +16,6 @@
             <div class="logo-box">
                 <h2>LavaSoft</h2>
             </div>
-
-            <!-- Menu -->
             <nav class="menu">
                 <ul>
                     <li><a href="#">Registrar Usuario</a></li>
@@ -26,8 +23,8 @@
                     <li><a href="#">Cambiar Estado de Pedido</a></li>
                     <li><a href="#">Proveedores</a></li>
                     <li><a href="#">Compra Materia Prima</a></li>
-                    <li><a href="#">Catálogo Productos</a></li>
-                    <li><a href="#">Categoria de Prendas</a></li>
+                    <li><a href="#" class="active">Catálogo Productos</a></li>
+                    <li><a href="#">Categoría de Prendas</a></li>
                     <li><a href="#">Catálogo de Prendas</a></li>
                     <li><a href="#">Cargas</a></li>
                     <li><a href="#">Reportes</a></li>
@@ -48,52 +45,42 @@
                     <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
                     <h1>LavaExpress</h1>
                 </div>
-
                 <div class="header-right">
-                    <div class="search-bar display-only">Pedidos</div>
+                    <div class="search-bar display-only">Catálogo Productos</div>
                 </div>
             </header>
 
             <!-- CUERPO PRINCIPAL -->
             <main class="content">
 
-                <!-- LINEAS DECORATIVAS -->
-                <div class="decor decor-left"></div>
-                <div class="decor decor-right"></div>
-
-                <!-- BOTÓN NUEVO PEDIDO -->
-                <div class="pedido-actions">
-                    <button class="btn-new">Nuevo Pedido</button>
-                </div>
-
-                <!-- TABLA DE PEDIDOS -->
-                <section class="usuarios-container card">
-                    <h2>Pedidos</h2>
-                    <table>
+                <div class="block catalogo-productos">
+                    <h2>Catálogo Productos</h2>
+                    <table class="table-catalogo">
                         <thead>
                             <tr>
-                                <th>ID del Pedido</th>
-                                <th>Fecha de Entrega</th>
-                                <th>Estatus</th>
-                                <th>Acción</th>
+                                <th>Clave</th>
+                                <th>Nombre</th>
+                                <th>Existencia</th>
+                                <th>Unidad</th>
+                                <th>Por carga</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for pedido in pedidos %}
+                            {% for producto in productos %}
                             <tr>
-                                <td>{{ pedido.id }}</td>
-                                <td>{{ pedido.fecha_entrega }}</td>
-                                <td>{{ pedido.estatus }}</td>
-                                <td>
-                                    <button class="btn-edit">✏️</button>
-                                    <button class="btn-delete">🗑️</button>
-                                </td>
+                                <td>{{ producto.clave }}</td>
+                                <td>{{ producto.nombre }}</td>
+                                <td>{{ producto.existencia }}</td>
+                                <td>{{ producto.unidad }}</td>
+                                <td>{{ producto.por_carga }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
-                </section>
+                </div>
+
             </main>
+
         </div>
     </div>
 </body>
