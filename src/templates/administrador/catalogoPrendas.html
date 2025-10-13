@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Prendas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/catalogoPrendas.css')}}">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="app">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo-box">
+                <h2>LavaSoft</h2>
+            </div>
+            <nav class="menu">
+                <ul>
+                    <li><a href="#">Registrar Usuario</a></li>
+                    <li><a href="#">Pedidos</a></li>
+                    <li><a href="#">Cambiar Estado de Pedido</a></li>
+                    <li><a href="#">Proveedores</a></li>
+                    <li><a href="#">Compra Materia Prima</a></li>
+                    <li><a href="#" class="active">Catálogo de Prendas</a></li>
+                    <li><a href="#">Categoría de Prendas</a></li>
+                    <li><a href="#">Cargas</a></li>
+                    <li><a href="#">Reportes</a></li>
+                    <li><a href="#">Rol</a></li>
+                    <li><a href="#">Materia Prima</a></li>
+                    <li><a href="#">Servicios</a></li>
+                    <li><a href="#">Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <div class="main">
+
+            <!-- ENCABEZADO -->
+            <header class="topbar">
+                <div class="header-center">
+                    <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
+                    <h1>LavaExpress</h1>
+                </div>
+                <div class="header-right">
+                    <div class="search-bar display-only">Catálogo de Prendas</div>
+                </div>
+            </header>
+
+            <!-- CUERPO PRINCIPAL -->
+            <main class="content">
+
+                <!-- BLOQUE NUEVA PRENDA -->
+                <div class="block compra-general">
+                    <h2>Nueva Prenda</h2>
+                    <div class="form-row">
+                        <div class="field-group">
+                            <label for="id-prenda">ID Prenda</label>
+                            <input type="text" id="id-prenda" placeholder="ID Prenda">
+                        </div>
+                        <div class="field-group">
+                            <label for="nombre-prenda">Nombre de la Prenda</label>
+                            <input type="text" id="nombre-prenda" placeholder="Nombre de la prenda">
+                        </div>
+                        <div class="field-group">
+                            <label for="categoria">Categoría</label>
+                            <select id="categoria">
+                                {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label for="empleado">Empleado que la realizó</label>
+                            <select id="empleado">
+                                {% for empleado in empleados %}
+                                <option value="{{ empleado.id }}">{{ empleado.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- BOTÓN GUARDAR -->
+                    <div class="btn-row">
+                        <button type="button" class="btn-save">Guardar Prenda</button>
+                    </div>
+                </div>
+
+                <!-- BLOQUE CATÁLOGO DE PRENDAS -->
+                <div class="block compra-detalle">
+                    <h2>Catálogo de Prendas</h2>
+                    <table class="table-compra">
+                        <thead>
+                            <tr>
+                                <th>Clave</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Precio x Kilo</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prenda in prendas %}
+                            <tr>
+                                <td>{{ prenda.id }}</td>
+                                <td>{{ prenda.nombre }}</td>
+                                <td>{{ prenda.categoria }}</td>
+                                <td>${{ prenda.precio_kilo }}</td>
+                                <td>
+                                    <button class="action-btn edit"><i class="fas fa-pen"></i></button>
+                                    <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- BOTÓN REGRESAR -->
+                    <div class="btn-row">
+                        <button class="btn-back">Regresar</button>
+                    </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

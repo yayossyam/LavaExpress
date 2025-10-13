@@ -143,6 +143,16 @@ def compraMateriaPrima():
 def catalogoProductos():
     return render_template('administrador/catalogoProductos.html')
 
+#Categoria de Prendas
+@app.route('/categoriaPrendas')
+def categoriaPrendas():
+    return render_template('administrador/categoriaPrendas.html')
+
+#Catalogo de Prendas
+@app.route('/catalogoPrendas')
+def catalogoPrendas():
+    return render_template('administrador/catalogoPrendas.html')
+
 #Función CRUD Materia Prima
 @app.route('/materiaPrima')
 def materiaPrima():
