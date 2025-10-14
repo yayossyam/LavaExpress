@@ -1,0 +1,221 @@
+/* === VARIABLES DE COLOR Y ESTILO === */
+:root {
+    --color-bg: #f7eccc;
+    --color-blue: #2b86c0;
+    --color-darkblue: #2f5fb0;
+    --color-text: #333;
+    --radius: 12px;
+    --shadow: 0 8px 16px rgba(0,0,0,0.1);
+    --sidebar-width: 240px;
+}
+
+/* === RESETEO GENERAL === */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--color-bg);
+    font-family: 'Nunito', sans-serif;
+    color: var(--color-text);
+    min-height: 100vh;
+}
+
+/* === CONTENEDOR PRINCIPAL === */
+.app {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+    background: #fff;
+    width: var(--sidebar-width);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+}
+
+.logo-box {
+    background: var(--color-blue);
+    border-radius: var(--radius);
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.logo-box h2 {
+    font-family: 'Fredoka One', cursive;
+    color: #fff;
+    font-size: 35px;
+}
+
+.menu ul {
+    list-style: none;
+}
+
+.menu li {
+    padding: 8px 0;
+    border-bottom: 2px solid #b7d9f3;
+}
+
+.menu a {
+    text-decoration: none;
+    color: var(--color-darkblue);
+    font-weight: 700;
+    font-size: 14px;
+    display: block;
+    padding: 5px;
+    border-radius: var(--radius);
+    transition: all 0.3s;
+}
+
+.menu a:hover {
+    background: var(--color-blue);
+    color: #fff;
+}
+
+.menu a.active {
+    color: var(--color-blue);
+    font-weight: 800;
+}
+
+/* === CONTENIDO PRINCIPAL === */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === ENCABEZADO === */
+.topbar {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.header-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.header-right {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.icon-logo {
+    width: 70px;
+    height: 70px;
+    border: 3px solid var(--color-blue);
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.topbar h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 32px;
+    color: var(--color-darkblue);
+}
+
+.display-only {
+    cursor: default;
+    background: #fff;
+    border: 2px solid #b7d9f3;
+    border-radius: 20px;
+    padding: 12px 40px;
+    width: 100%;
+    max-width: calc(100% - 80px);
+    font-size: 16px;
+    color: var(--color-darkblue);
+    text-align: left;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* === BLOQUE DE REPORTES === */
+.reportes-config {
+    background: var(--color-bg); /* Café */
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+}
+
+.reportes-config h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--color-blue);
+    background-color: var(--color-bg); /* Café */
+    padding: 15px 0;
+    border-radius: var(--radius) var(--radius) 0 0;
+    margin-bottom: 10px;
+}
+
+/* === BOTONES DE REPORTES === */
+.reportes-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 botones por fila */
+    gap: 20px;
+    justify-items: center;
+}
+
+.btn-reporte {
+    background-color: var(--color-blue);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 20px 30px;    
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 220px;        /* ancho fijo */
+    height: 60px;        /* altura fija para todos los botones de fecha */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s;
+}
+
+.btn-reporte:hover {
+    background-color: var(--color-darkblue);
+    transform: scale(1.05);
+}
+
+.btn-icono {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+/* === BOTÓN REGRESAR === */
+.btn-back-container {
+    margin-top: 30px;
+}
+
+.btn-back {
+    background-color: #5dade2;
+    color: white;
+    padding: 12px 30px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s;
+}
+
+.btn-back:hover {
+    background-color: #2f5fb0;
+}

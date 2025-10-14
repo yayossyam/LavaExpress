@@ -153,17 +153,55 @@ def categoriaPrendas():
 def catalogoPrendas():
     return render_template('administrador/catalogoPrendas.html')
 
+#Cargas
+@app.route('/cargas')
+def cargas():
+    return render_template('administrador/cargas.html')
+
+#Reportes
+@app.route('/reportes')
+def reportes():
+    return render_template('administrador/reportes/index.html')
+
+#Reportes Ventas
+@app.route('/reporteVentas')
+def reporteVentas():
+    return render_template('administrador/reportes/reportesVentas.html')
+
+#Reportes Reabastecimiento
+@app.route('/reporteReabastecimiento')
+def reporteReabastecimiento():
+    return render_template('administrador/reportes/reportesReabastecimiento.html')
+
+#Reportes Tickets
+@app.route('/reporteTicket')
+def reporteTickets():
+    return render_template('administrador/reportes/reportesTicket.html')
+
+#Reportes Inventario
+@app.route('/reporteInventario')
+def reporteInventario():
+    return render_template('administrador/reportes/reportesInventario.html')
+
+#Roles
+@app.route('/roles')
+def roles():
+    return render_template('administrador/roles.html')
+
 #Función CRUD Materia Prima
 @app.route('/materiaPrima')
 def materiaPrima():
     return render_template('administrador/materiaPrima.html')
-
 
 #Función CRUD Servicios
 @app.route('/servicio')
 def servicios():
     return render_template('administrador/servicio.html')
 
+#Función Loggout
+@app.route('/loggout')
+def loggout():
+    return render_template('loggout.html')
 
 
 #Redireccionar si el usuario busca una página no existente
