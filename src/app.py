@@ -46,7 +46,8 @@ def login():
             #Aquí vamos a ver si la contraseña ingresada es igual a la de la BD
             if account['PASS'] == _password:
                 session['logueado'] = True
-                session['id'] = account['IDUSER'] 
+                session['id'] = account['IDUSER']
+                session['rol'] = account['IDROL']
 
                 #Identificación de rol
                 if account['IDROL'] == 1: #Rol administrativo
@@ -184,9 +185,101 @@ def reporteInventario():
     return render_template('administrador/reportes/reportesInventario.html')
 
 #Roles
-@app.route('/roles')
+@app.route('/roles', methods=['GET', 'POST'])
 def roles():
+    if request.method == 'POST' and 'nombre' in request.form:
+        
+        #Capturamos el nuevo rol
+        nombre = request.form['nombre']
+
+        #Creamos nuevo cursor de bd. objeto que permitirá realizar CRUD en la BD
+        cur = mysql.connection.cursor()
+
+        #Obtener el ultimo ID de USUARIO
+
+        cur.execute('SELECT MAX(IDROL) AS max_id FROM ROLES') 
+        #AS max_id es una variable temporal que guardará los datos obtenidos en MAX(USER)
+
+        result = cur.fetchone()
+        #Recupera el resultado de la consulta
+
+        id = (result['max_id'] or 0) + 1 
+        #En result accedemos al valor obtenido en max_id, el "or 0" da entender que en caso de que sea NULO le asigne valor 0.
+
+        #Generamos INSERT
+        cur.execute('INSERT INTO ROLES (IDROL, NOMROL) VALUES (%s,%s)', (id,nombre))
+
+        #Hacemos commit al INSERT para que se guarde en la BD
+        mysql.connection.commit()
+
+        #Cerramos el cursor de la BD como buena practica.
+        cur.close()
+
+        #Mandamos mensaje de exito
+        flash("Nuevo rol creado con éxito", "success")
+        
+        #Actualizamos la página de roles
+        return redirect(url_for('roles'))
+    
+    #Si solo quiere observar la página con GET, se debe de mostrar los roles existentes
+    #Aquí también existira una consulta a la BD
+    cur = mysql.connection.cursor()
+
+    cur.execute('SELECT IDROL, NOMROL FROM ROLES')
+    roles = cur.fetchall() #Se usa fetchall porque son N datos. Este es la 2da variable del return
+    cur.close()
+
+    #ROLES = ROLES
+    #El primer "roles" será la variable que estará disponible en el HTML aplicando Jinja2
+    #El segundo "roles" es la variable con valores obtenidos de la BD
+    return render_template('administrador/roles/roles.html', roles = roles)
+
+
+
+
+
     return render_template('administrador/roles.html')
+
+#Editar Rol
+@app.route('/roles/editar/<int:idrol>', methods=['GET', 'POST'])
+def editar_rol(idrol):
+    if request.method == 'POST':
+        #Capturamos los datos del formulario
+        nombre = request.form['nombre']
+
+        #Creamos instancia de BD
+        cur = mysql.connection.cursor()
+
+        #Generamos un UPDATE
+        cur.execute('UPDATE ROLES SET NOMROL=%s WHERE IDROL=%s', (nombre, idrol))
+
+        #Guardamos UPDATE
+        mysql.connection.commit()
+
+        #Cerramos instancia BD
+        cur.close()
+
+        #Mensaje de exito
+        flash("Dato actualizado correctamente", "success")
+        return redirect(url_for('roles'))
+    
+    #Si es GET, mostrar los datos actuales
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM ROLES WHERE IDROL=%s', (idrol,))
+    rol = cur.fetchone()
+    cur.close()
+
+    return render_template('administrador/roles/editarRol.html', rol=rol)
+
+#Eliminar Rol
+@app.route('/roles/eliminar/<int:idrol>')
+def eliminar_rol(idrol):
+    cur = mysql.connection.cursor()
+    cur.execute('DELETE FROM ROLES WHERE IDROL=%s', (idrol,))
+    mysql.connection.commit()
+    cur.close()
+    flash("Rol eliminado correctamente", "success")
+    return redirect(url_for('roles'))
 
 #Función CRUD Materia Prima
 @app.route('/materiaPrima')
@@ -199,9 +292,29 @@ def servicios():
     return render_template('administrador/servicio.html')
 
 #Función Loggout
-@app.route('/loggout')
+@app.route('/loggoutAdmin')
 def loggout():
-    return render_template('loggout.html')
+    return render_template('administrador/loggoutAdmin.html')
+
+
+
+
+
+#Cliente
+#Función Mis Pedidos
+@app.route('/misPedidos')
+def misPedidos():
+    return render_template('cliente/misPedidos.html')
+
+#Función Actualizar Datos
+@app.route('/actualizarDatos')
+def actualizarDatos():
+    return render_template('cliente/actualizarDatos.html')
+
+#Función Loggout
+@app.route('/loggoutCliente')
+def loggoutCliente():
+    return render_template('cliente/loggoutCliente.html')
 
 
 #Redireccionar si el usuario busca una página no existente

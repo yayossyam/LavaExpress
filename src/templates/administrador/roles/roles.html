@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roles</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/roles.css')}}">
+</head>
+<body>
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="app">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo-box">
+                <h2>LavaSoft</h2>
+            </div>
+            <nav class="menu">
+                <ul>
+                    <li><a href="#">Registrar Usuario</a></li>
+                    <li><a href="#">Pedidos</a></li>
+                    <li><a href="#">Cambiar Estado de Pedido</a></li>
+                    <li><a href="#">Proveedores</a></li>
+                    <li><a href="#">Compra Materia Prima</a></li>
+                    <li><a href="#">Catálogo Productos</a></li>
+                    <li><a href="#">Categoria de Prendas</a></li>
+                    <li><a href="#">Catálogo de Prendas</a></li>
+                    <li><a href="#">Cargas</a></li>
+                    <li><a href="#">Reportes</a></li>
+                    <li><a href="#" class="active">Rol</a></li>
+                    <li><a href="#">Materia Prima</a></li>
+                    <li><a href="#">Servicios</a></li>
+                    <li><a href="#">Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <div class="main">
+
+            <!-- ENCABEZADO -->
+            <header class="topbar">
+                <div class="header-center">
+                    <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
+                    <h1>LavaExpress</h1>
+                </div>
+                <div class="header-right">
+                    <div class="search-bar display-only">Roles</div>
+                </div>
+            </header>
+
+            <!-- CUERPO PRINCIPAL -->
+            <main class="content">
+
+                <!--Mensajes FLASH-->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- BLOQUE PRINCIPAL EN ROW -->
+                <div class="roles-container">
+
+                    <!-- ROLES EXISTENTES -->
+                    <div class="existing">
+                        <h2>Roles existentes</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rol in roles %}
+                                <tr>
+                                    <td>{{ rol.NOMROL }}</td>
+                                    <td>
+                                        <a href="{{ url_for('editar_rol', idrol=rol.IDROL) }}" class="btn-edit">✏️</a>
+                                        <a href="{{ url_for('eliminar_rol', idrol=rol.IDROL) }}" class="btn-delete">🗑️</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- NUEVO ROL -->
+                    <div class="new">
+                        <h2>Nuevo Rol</h2>
+                        <form class="new-form" action="{{ url_for('roles') }}" method="POST">
+                            <label for="nombre">Nombre:</label>
+                            <input type="text" id="nombre" name="nombre" placeholder="Nombre del rol" required>
+                            <button type="submit" class="btn-save">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- BOTÓN REGRESAR CENTRADO DEBAJO -->
+                <div class="back-container">
+                    <button class="btn-back">Regresar</button>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!--JS del Boostrap-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -272,3 +272,86 @@ th {
 .btn-back:hover {
     background-color: #b7b7b7;
 }
+
+
+/* === CARD DE EDICIÓN DE ROL === */
+.edit-card {
+    background: #fff;
+    width: 400px;
+    max-width: 90%;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    padding: 40px 30px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.edit-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.edit-card label {
+    font-weight: 600;
+    color: var(--color-darkblue);
+    margin-top: 15px;
+    display: block;
+}
+
+.edit-card input {
+    width: 100%;
+    padding: 12px 15px;
+    margin-top: 5px;
+    border: 2px solid var(--color-blue);
+    border-radius: 20px;
+    outline: none;
+    font-size: 15px;
+    transition: all 0.3s ease;
+}
+
+.edit-card input:focus {
+    box-shadow: 0 0 6px rgba(43, 134, 192, 0.5);
+}
+
+/* BOTONES DENTRO DE LA CARD */
+.edit-card .buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.edit-card .btn-primary {
+    background: var(--color-blue);
+    color: white;
+    padding: 12px 25px;
+    font-weight: 700;
+    border-radius: var(--radius);
+    transition: all 0.3s ease;
+}
+
+.edit-card .btn-primary:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+}
+
+.edit-card .btn-outline {
+    background: #cce5f9;
+    color: #003366;
+    padding: 12px 25px;
+    font-weight: 700;
+    border-radius: var(--radius);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.edit-card .btn-outline:hover {
+    background: #b0d4f1;
+    transform: scale(1.05);
+}
+

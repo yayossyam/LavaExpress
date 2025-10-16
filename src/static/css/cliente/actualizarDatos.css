@@ -1,0 +1,296 @@
+/* === VARIABLES DE COLOR Y ESTILO === */
+:root {
+    --color-bg: #f7eccc;
+    --color-blue: #2b86c0;
+    --color-darkblue: #2f5fb0;
+    --color-text: #333;
+    --radius: 12px;
+    --shadow: 0 8px 16px rgba(0,0,0,0.1);
+    --sidebar-width: 240px;
+}
+
+/* === RESETEO GENERAL === */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--color-bg);
+    font-family: 'Nunito', sans-serif;
+    color: var(--color-text);
+    min-height: 100vh;
+}
+
+/* === CONTENEDOR PRINCIPAL === */
+.app {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* === SIDEBAR (idéntico a Mis Pedidos) === */
+.sidebar {
+    background: #fff;
+    width: var(--sidebar-width);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+}
+
+.logo-box {
+    background: var(--color-blue);
+    border-radius: var(--radius);
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.logo-box h2 {
+    font-family: 'Fredoka One', cursive;
+    color: #fff;
+    font-size: 35px;
+}
+
+.menu ul {
+    list-style: none;
+}
+
+.menu li {
+    padding: 8px 0;
+    border-bottom: 2px solid #b7d9f3;
+    transition: background 0.3s;
+}
+
+.menu a {
+    text-decoration: none;
+    color: var(--color-darkblue);
+    font-weight: 700;
+    font-size: 14px;
+    display: block;
+    padding: 5px;
+    border-radius: var(--radius);
+    transition: all 0.3s;
+}
+
+.menu a:hover {
+    background: var(--color-blue);
+    color: #fff;
+}
+
+.menu a.active {
+    color: var(--color-blue);
+    font-weight: 800;
+}
+
+/* === CONTENIDO PRINCIPAL === */
+.main {
+    flex: 1;
+}
+
+/* === ENCABEZADO === */
+.topbar {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: 25px;
+}
+
+.header-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.header-right {
+    display: flex;
+    justify-content: center;
+    align-items:flex-start;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+.icon-logo {
+    width: 70px;
+    height: 70px;
+    border: 3px solid var(--color-blue);
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.topbar h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 32px;
+    color: var(--color-darkblue);
+    margin: 0;
+}
+
+.display-only {
+    cursor: default;
+    background: #fff;
+    border: 2px solid #b7d9f3;
+    border-radius: 20px;
+    padding: 12px 40px;
+    width: 100%;
+    max-width: calc(100% - 80px);
+    font-size: 16px;
+    color: var(--color-darkblue);
+    text-align: left;
+    user-select: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    font-weight: 600;
+}
+
+/* === ÁREA DE CONTENIDO === */
+.content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+}
+
+/* === CONTENEDOR DE ACTUALIZACIÓN === */
+.update-container {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 30px;
+    width: 450px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.update-container h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    text-align: center;
+    background: var(--color-blue);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 15px 0;
+}
+
+/* === BOTONES DE SECCIÓN === */
+.section-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.btn-section {
+    flex: 1;
+    padding: 10px;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    background: #cce5f9;
+    color: var(--color-darkblue);
+    transition: all 0.3s;
+}
+
+.btn-section.active {
+    background: var(--color-blue);
+    color: #fff;
+}
+
+.btn-section:hover {
+    opacity: 0.9;
+}
+
+/* === FORMULARIOS === */
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.form-section label {
+    font-weight: 600;
+    color: var(--color-darkblue);
+}
+
+.form-section input {
+    padding: 10px;
+    border: 2px solid var(--color-blue);
+    border-radius: 20px;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.form-section input:focus {
+    box-shadow: 0 0 5px rgba(43,134,192,0.5);
+}
+
+/* === BOTONES DE FORMULARIO === */
+.form-section .btn {
+    margin-top: 10px;
+    border-radius: var(--radius);
+    font-weight: 700;
+}
+
+/* === BOTÓN REGRESAR === */
+.back-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding-top: 10px;
+}
+
+.btn-back {
+    background-color: #ccc;
+    color: #333;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-back:hover {
+    background-color: #b7b7b7;
+}
+
+/* === BOTONES ACTUALIZAR === */
+.btn-update {
+    background: linear-gradient(90deg, #2b86c0, #2f5fb0);
+    color: #fff;
+    font-weight: 700;
+    border-radius: var(--radius);
+    border: none;
+    padding: 10px;
+    transition: all 0.3s;
+}
+
+.btn-update:hover {
+    background: linear-gradient(90deg, #2f5fb0, #2b86c0);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+
+/* === RESPONSIVE === */
+@media (max-width: 900px) {
+    .app {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .update-container {
+        width: 100%;
+        max-width: 450px;
+    }
+}
