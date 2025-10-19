@@ -74,7 +74,11 @@
                             </select>
                         </div>
                         <div class="field-group">
-                            <label for="empleado">Empleado que la realizó</label>
+                            <label for="nombre-prenda">Precio</label>
+                            <input type="number" id="nombre-prenda" placeholder="Precio">
+                        </div>
+                        <div class="field-group">
+                            <label for="empleado">Empleado que lo realizó</label>
                             <select id="empleado">
                                 {% for empleado in empleados %}
                                 <option value="{{ empleado.id }}">{{ empleado.nombre }}</option>
@@ -98,7 +102,7 @@
                                 <th>Clave</th>
                                 <th>Nombre</th>
                                 <th>Categoría</th>
-                                <th>Precio x Kilo</th>
+                                <th>Precio</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
@@ -108,7 +112,7 @@
                                 <td>{{ prenda.id }}</td>
                                 <td>{{ prenda.nombre }}</td>
                                 <td>{{ prenda.categoria }}</td>
-                                <td>${{ prenda.precio_kilo }}</td>
+                                <td>${{ prenda.precio }}</td>
                                 <td>
                                     <button class="action-btn edit"><i class="fas fa-pen"></i></button>
                                     <button class="action-btn delete"><i class="fas fa-trash"></i></button>

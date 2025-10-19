@@ -62,7 +62,7 @@ def login():
             return redirect(url_for('index'))
         
     return render_template('login.html')
-        
+
 #Función de Register
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -129,10 +129,96 @@ def nuevoPedido():
 def cambioEstadoPedido():
     return render_template('administrador/cambioEstadoPedido.html')
 
-#Proveedores
-@app.route('/proveedores')
+# Nuevo Proveedor
+@app.route('/proveedores', methods=['GET', 'POST'])
 def proveedores():
-    return render_template('administrador/proveedores.html')
+    if request.method == 'POST' and 'nombre' in request.form and 'correo' in request.form and 'telefono' in request.form:
+        
+        #Capturamos los datos obtenidos en el form
+        nombre = request.form['nombre']
+        correo = request.form['correo']
+        telefono = request.form['telefono']
+
+        #Creamos instancia en la BD para generar consultas
+        cur = mysql.connection.cursor()
+
+        #Obtener el ultimo ID insertado en la BD
+        cur.execute('SELECT MAX(IDPROVEEDOR) AS max_id FROM PROVEEDORES')
+        result = cur.fetchone()
+        id = (result['max_id'] or 0) + 1
+
+        #Generamos insert en la tabla Proveedores
+        cur.execute('INSERT INTO PROVEEDORES (IDPROVEEDOR, NOMBREPROVEEDOR, CORREO, TELEFONO) VALUES (%s,%s,%s,%s)',(id, nombre, correo, telefono))
+
+        #Generamoa el comit del insert
+        mysql.connection.commit()
+
+        #Cerramos la BD
+        cur.close()
+
+        #Enviamos mensaje de éxito
+        flash("✅ Nuevo proveedor ingresado con éxito", "success")
+
+        return redirect(url_for('proveedores'))
+    
+    #Consultas GET
+    cur = mysql.connection.cursor()
+
+    #Capturamos nombre ingresado en la barra de busqueda
+    nombre_buscar = request.args.get('buscar-nombre', '')
+
+    #Verificamos si se ingreso algo en la barra de busqueda
+    if nombre_buscar:
+        #Buscamos el dato especifico
+        cur.execute('SELECT IDPROVEEDOR, NOMBREPROVEEDOR FROM PROVEEDORES WHERE NOMBREPROVEEDOR LIKE %s', ('%' + nombre_buscar + '%',))
+    else: #Si no ingreso nada en la barra, entonces mostramos los datos existentes de proveedores
+        cur.execute('SELECT IDPROVEEDOR, NOMBREPROVEEDOR FROM PROVEEDORES')
+
+    #Se guarda en proveedores el valor ya sea de la barra de busqueda ó los datos generales
+    proveedores = cur.fetchall()
+    cur.close()
+    return render_template('administrador/proveedores/proveedores.html', proveedores=proveedores, nombre_buscar = nombre_buscar)
+
+# Editar Proveedor
+@app.route('/proveedores/editar/<int:idproveedor>', methods=['GET', 'POST'])
+def editar_proveedor(idproveedor):
+    if request.method == 'POST':
+        #Capturamos los datos
+        nombre = request.form['nombre']
+        correo = request.form['correo']
+        telefono = request.form['telefono']
+
+        #Creamos instancia de la BD
+        cur = mysql.connection.cursor()
+
+        cur.execute('UPDATE PROVEEDORES SET NOMBREPROVEEDOR = %s, CORREO = %s, TELEFONO = %s WHERE IDPROVEEDOR = %s', (nombre, correo, telefono, idproveedor))
+
+        #Guardamos el UPDATE
+        mysql.connection.commit()
+
+        #Cerramos la BD
+        cur.close()
+
+        #Mensaje de éxito
+        flash("Dato actualizado correctamente", "success")
+        return redirect(url_for('proveedores'))
+    #Si es GET
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM PROVEEDORES WHERE IDPROVEEDOR=%s',(idproveedor,))
+    proveedor = cur.fetchone()
+    cur.close()
+
+    return render_template('administrador/proveedores/editarProveedor.html', proveedor = proveedor)
+
+# Eliminar Proveedor
+@app.route('/proveedores/eliminar/<int:idproveedor>')
+def eliminar_proveedor(idproveedor):
+    cur = mysql.connection.cursor()
+    cur.execute('DELETE FROM PROVEEDORES WHERE IDPROVEEDOR = %s', (idproveedor,))
+    mysql.connection.commit()
+    cur.close()
+    flash('Proveedor eliminado correctamente','success')
+    return redirect(url_for('proveedores'))
 
 #Compra Materia Prima
 @app.route('/compraMateriaPrima')
@@ -233,12 +319,6 @@ def roles():
     #El primer "roles" será la variable que estará disponible en el HTML aplicando Jinja2
     #El segundo "roles" es la variable con valores obtenidos de la BD
     return render_template('administrador/roles/roles.html', roles = roles)
-
-
-
-
-
-    return render_template('administrador/roles.html')
 
 #Editar Rol
 @app.route('/roles/editar/<int:idrol>', methods=['GET', 'POST'])

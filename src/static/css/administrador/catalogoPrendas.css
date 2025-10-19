@@ -303,3 +303,53 @@ body {
 .btn-back:hover {
     background-color: #b7b7b7;
 }
+
+/* === NUEVA PRENDA EN UNA SOLA FILA CON ANCHOS AJUSTADOS === */
+.compra-general .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr 1.2fr 1fr 1.4fr; /* ajusta proporciones */
+    gap: 15px;
+    padding: 20px;
+    background-color: #f0f8ff;
+    border-radius: 0 0 12px 12px;
+    align-items: end;
+}
+
+/* Cada grupo (label + input/select) */
+.compra-general .form-row .field-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Etiquetas */
+.compra-general .form-row label {
+    font-weight: 600;
+    color: var(--color-blue);
+    margin-bottom: 5px;
+}
+
+/* Campos generales */
+.compra-general .form-row input,
+.compra-general .form-row select {
+    padding: 8px;
+    border-radius: 8px;
+    border: 2px solid var(--color-blue);
+    outline: none;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+/* Diferenciar tamaños ligeramente */
+.compra-general .form-row input {
+    max-width: 100%;
+}
+
+.compra-general .form-row select {
+    max-width: 110%; /* ligeramente más ancho que el input */
+}
+
+/* Efecto al enfocar */
+.compra-general .form-row input:focus,
+.compra-general .form-row select:focus {
+    box-shadow: 0 0 5px rgba(43, 134, 192, 0.5);
+}
