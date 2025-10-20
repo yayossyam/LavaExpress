@@ -19,20 +19,20 @@
             </div>
             <nav class="menu">
                 <ul>
-                    <li><a href="#">Registrar Usuario</a></li>
-                    <li><a href="#">Pedidos</a></li>
-                    <li><a href="#">Cambiar Estado de Pedido</a></li>
-                    <li><a href="#">Proveedores</a></li>
-                    <li><a href="#">Compra Materia Prima</a></li>
-                    <li><a href="#">Catálogo Productos</a></li>
-                    <li><a href="#">Categoria de Prendas</a></li>
-                    <li><a href="#">Catálogo de Prendas</a></li>
-                    <li><a href="#">Cargas</a></li>
-                    <li><a href="#">Reportes</a></li>
-                    <li><a href="#">Rol</a></li>
-                    <li><a href="#">Materia Prima</a></li>
-                    <li><a href="#">Servicios</a></li>
-                    <li><a href="#">Cerrar Sesión</a></li>
+                    <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
+                    <li><a href="{{ url_for('pedidos') }}">Pedidos</a></li>
+                    <li><a href="{{ url_for('cambioEstadoPedido') }}">Cambiar Estado de Pedido</a></li>
+                    <li><a href="{{ url_for('proveedores') }}">Proveedores</a></li>
+                    <li><a href="{{ url_for('compraMateriaPrima') }}">Compra Materia Prima</a></li>
+                    <li><a href="{{ url_for('catalogoProductos') }}">Catálogo Productos</a></li>
+                    <li><a href="{{ url_for('categoriaPrendas') }}">Categoría de Prendas</a></li>
+                    <li><a href="{{ url_for('catalogoPrendas') }}">Catálogo de Prendas</a></li>
+                    <li><a href="{{ url_for('cargas') }}">Cargas</a></li>
+                    <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
+                    <li><a href="{{ url_for('roles') }}">Rol</a></li>
+                    <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
+                    <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                    <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
                 </ul>
             </nav>
         </aside>
@@ -64,13 +64,15 @@
                             <thead>
                                 <tr>
                                     <th>Nombre</th>
+                                    <th>Cantidad</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for materia in materias %}
                                 <tr>
-                                    <td>{{ materia.nombre }}</td>
+                                    <td>{{ materia.NOMBREMATERIAPRIMA }}</td>
+                                    <td>{{ materia.CANTIDAD}}</td>
                                     <td>
                                         <button class="btn-edit">✏️</button>
                                         <button class="btn-delete">🗑️</button>
@@ -84,12 +86,12 @@
                     <!-- NUEVA MATERIA PRIMA -->
                     <div class="new">
                         <h2>Nueva Materia Prima</h2>
-                        <form class="new-form">
+                        <form class="new-form" method="POST" action="{{ url_for('materiaPrima')}}">
                             <label for="nombre">Nombre:</label>
-                            <input type="text" id="nombre" placeholder="Nombre de la materia prima">
-                            <label for="nombre">Unidad de medida:</label>
-                            <input type="text" id="nombre" placeholder="Defina la unidad de medida">
-                            <button type="button" class="btn-save">Guardar</button>
+                            <input type="text" id="nombre" name="nombre" placeholder="Nombre de la materia prima">
+                            <label for="unidad">Unidad de medida:</label>
+                            <input type="text" id="unidad" name="unidad" placeholder="Defina la unidad de medida">
+                            <button type="submit" class="btn-save">Guardar</button>
                         </form>
                     </div>
                 </div>

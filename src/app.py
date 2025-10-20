@@ -361,10 +361,52 @@ def eliminar_rol(idrol):
     flash("Rol eliminado correctamente", "success")
     return redirect(url_for('roles'))
 
-#Función CRUD Materia Prima
-@app.route('/materiaPrima')
+#Nueva Materia Prima
+@app.route('/materiaPrima', methods=['GET', 'POST'])
 def materiaPrima():
-    return render_template('administrador/materiaPrima.html')
+    if request.method == 'POST' and 'nombre' in request.form and 'unidad' in request.form:
+
+        #Capturamos los datos ingresados en el form
+        nombre = request.form['nombre'].strip() #El STRIP elimina espacios al inicio y final
+        unidad = request.form['unidad'].strip()
+
+        #Creamos una instancia de BD para generar consultas
+        cur = mysql.connection.cursor()
+
+        #Verificar si ya existe la materia prima
+        #El LOWER convierte la informacion ingresada en minusculas y compara
+        cur.execute('SELECT * FROM MATERIAPRIMA WHERE LOWER(NOMBREMATERIAPRIMA) = %s',(nombre.lower(),))
+        existente = cur.fetchone()
+
+        if existente:
+            flash("❌ La materia prima ya existe", "warning")
+            return redirect(url_for('materiaPrima'))
+
+        #Obtenemos el ultimo ID 
+        cur.execute('SELECT MAX(IDMATERIAPRIMA) AS max_id FROM MATERIAPRIMA')
+        result = cur.fetchone()
+        id = (result['max_id'] or 0) + 1
+
+        #Generamos INSERT
+        cur.execute('INSERT INTO MATERIAPRIMA(IDMATERIAPRIMA, NOMBREMATERIAPRIMA, CANTIDAD, UNIDADMEDIDA) VALUES (%s, %s, %s, %s)', (id, nombre, 0, unidad),)
+
+        #Guardamos INSERT
+        mysql.connection.commit()
+
+        #Cerramos BD
+        cur.close()
+
+        #Mensaje de éxito
+        flash("✅ Materia Prima creada de manera éxitosa", "success")
+        return redirect(url_for('materiaPrima'))
+    
+    #SI ES GET MOSTRAMOS MATERIAS PRIMAS EXISTENTES
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT NOMBREMATERIAPRIMA, CANTIDAD FROM MATERIAPRIMA')
+    materias = cur.fetchall()
+    return render_template('administrador/materiaPrima/materiaPrima.html', materias = materias)
+
+    
 
 #Función CRUD Servicios
 @app.route('/servicio')
