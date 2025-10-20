@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Materia Prima</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/materiaPrima.css')}}">
+</head>
+<body>
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="app">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo-box">
+                <h2>LavaSoft</h2>
+            </div>
+
+            <!-- Menu -->
+            <nav class="menu">
+                <ul>
+                    <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
+                    <li><a href="{{ url_for('pedidos') }}">Pedidos</a></li>
+                    <li><a href="{{ url_for('cambioEstadoPedido') }}">Cambiar Estado de Pedido</a></li>
+                    <li><a href="{{ url_for('proveedores') }}">Proveedores</a></li>
+                    <li><a href="{{ url_for('compraMateriaPrima') }}">Compra Materia Prima</a></li>
+                    <li><a href="{{ url_for('catalogoProductos') }}">Catálogo Productos</a></li>
+                    <li><a href="{{ url_for('categoriaPrendas') }}">Categoría de Prendas</a></li>
+                    <li><a href="{{ url_for('catalogoPrendas') }}">Catálogo de Prendas</a></li>
+                    <li><a href="{{ url_for('cargas') }}">Cargas</a></li>
+                    <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
+                    <li><a href="{{ url_for('roles') }}">Rol</a></li>
+                    <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
+                    <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                    <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL-->
+        <div class="main">
+
+            <!-- ENCABEZADO -->
+            <header class="topbar">
+                <div class="header-center">
+                    <img src="{{ url_for('static', filename='img/logoo.jpeg')}}" class="icon-logo">
+                    <h1>LavaExpress</h1>
+                </div>
+
+                <div class="header-right">
+                    <div class="search-bar display-only">Editar Materia Prima</div>
+                </div>
+            </header>
+
+            <!-- CUERPO PRINCIPAL -->
+            <main class="content">
+
+                <!-- TARJETON DE EDICIÓN -->
+                <section class="card edit-card">
+                    <form class="register-form" action="{{ url_for('editar_materia', idmateriaprima = materia.IDMATERIAPRIMA) }}" method="POST">
+
+                        <!-- Mostrar Nombre Actual -->
+                        <label for="nombre_actual">Nombre actual:</label>
+                        <input type="text" id="nombre_actual" value="{{ materia.NOMBREMATERIAPRIMA }}" readonly>
+
+                        <!-- Nuevo Nombre -->
+                        <label for="nombre">Nuevo Nombre:</label>
+                        <input type="text" name="nombre" id="nombre" placeholder="Ingrese el nuevo nombre" required>
+
+
+                        <!-- Mostrar Cantidad Actual -->
+                        <label for="cantidad_actual">Cantidad actual:</label>
+                        <input type="text" id="cantidad_actual" value="{{ materia.CANTIDAD }}" readonly>
+
+                        <!-- Nueva Cantidad -->
+                        <label for="cantidad">Nueva Cantidad:</label>
+                        <input type="text" name="cantidad" id="cantidad" placeholder="Ingrese la nueva cantidad" required>
+
+
+                        <!-- Mostrar Unidad de Medida Actual-->
+                        <label for="unidad_actual">Unidad de medida actual:</label>
+                        <input type="text" id="unidad_actual" value="{{ materia.UNIDADMEDIDA }}" readonly>
+
+                        <!-- Nueva Unidad de Medida -->
+                        <label for="unidad">Nueva Unidad de Medida:</label>
+                        <input type="text" name="unidad" id="unidad" placeholder="Ingrese la nueva unidad de medida" required>
+
+
+                        <!-- Mostrar Stock Minimo Actual-->
+                        <label for="stock_actual">Stock mínimo actual:</label>
+                        <input type="text" id="stock_actual" value="{{ materia.STOCKMINIMO }}" readonly>
+
+                        <!-- Nuevo Stock -->
+                        <label for="stock">Nuevo Stock Mínimo:</label>
+                        <input type="text" name="stock" id="stock" placeholder="Ingrese el nuevo stock mínimo" required>
+
+
+
+                        <!-- Botón de Actualización-->
+                        <div class="buttons">
+                            <button type="submit" class="btn btn-primary">Actualizar</button>
+                            <a href="{{ url_for('materiaPrima') }}" class="btn btn-outline">Cancelar</a>
+                        </div>
+                    </form>
+                </section>
+            </main>
+
+        </div>
+    </div>
+</body>
+</html>
