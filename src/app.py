@@ -55,10 +55,10 @@ def login():
                 else: #Rol cliente
                     return render_template('cliente/client.html')
             else:
-                flash("Contraseña incorrecta", "warning")
+                flash("⚠️Contraseña incorrecta", "warning")
                 return redirect(url_for('index'))
         else:
-            flash("Usuario no existe", "danger")
+            flash("❌Usuario no existe", "danger")
             return redirect(url_for('index'))
         
     return render_template('login.html')
@@ -93,7 +93,7 @@ def register():
         #Se cierra el cursor
         cur.close()
 
-        flash("Usuario Registrado de manera exitosa","success")
+        flash("✅Usuario Registrado de manera exitosa","success")
         return redirect(url_for('index'))
     else:
         return render_template('register.html')
@@ -157,7 +157,7 @@ def proveedores():
         cur.close()
 
         #Enviamos mensaje de éxito
-        flash("✅ Nuevo proveedor ingresado con éxito", "success")
+        flash("✅Nuevo proveedor ingresado con éxito", "success")
 
         return redirect(url_for('proveedores'))
     
@@ -200,7 +200,7 @@ def editar_proveedor(idproveedor):
         cur.close()
 
         #Mensaje de éxito
-        flash("Dato actualizado correctamente", "success")
+        flash("✅ Dato actualizado correctamente", "success")
         return redirect(url_for('proveedores'))
     #Si es GET
     cur = mysql.connection.cursor()
@@ -217,7 +217,7 @@ def eliminar_proveedor(idproveedor):
     cur.execute('DELETE FROM PROVEEDORES WHERE IDPROVEEDOR = %s', (idproveedor,))
     mysql.connection.commit()
     cur.close()
-    flash('Proveedor eliminado correctamente','success')
+    flash('✅ Proveedor eliminado correctamente','success')
     return redirect(url_for('proveedores'))
 
 #Compra Materia Prima
@@ -230,10 +230,84 @@ def compraMateriaPrima():
 def catalogoProductos():
     return render_template('administrador/catalogoProductos.html')
 
-#Categoria de Prendas
-@app.route('/categoriaPrendas')
+#Nueva Prenda
+@app.route('/categoriaPrendas', methods=['GET', 'POST'])
 def categoriaPrendas():
-    return render_template('administrador/categoriaPrendas.html')
+    if request.method == 'POST' and 'nombre' in request.form:
+        #Capturar los datos ingresados en el form
+        #Convertimos los valores en minusculas
+        nombre = request.form['nombre'].strip()
+
+        #Crear instancia BD
+        cur = mysql.connection.cursor()
+
+        #Verificar que el dato a crear no exista en la bd
+        cur.execute('SELECT * FROM CATEGORIAPRENDAS WHERE LOWER(NOMBRE) =  %s',(nombre.lower(),))
+        existente = cur.fetchone()
+
+        #Si existe,enviamos mensaje de error
+        if existente:
+            flash("❌La categoría ya existe", "danger")
+            return redirect(url_for('categoriaPrendas'))
+        
+        #Si no existe,obtener ultimo ID de categoria prendas
+        cur.execute('SELECT MAX(IDCATEGORIA) AS max_id FROM CATEGORIAPRENDAS')
+        result = cur.fetchone()
+        id = (result['max_id'] or 0) + 1
+
+        #Generamos INSERT
+        cur.execute('INSERT INTO CATEGORIAPRENDAS(IDCATEGORIA, NOMBRE) VALUES (%s, %s)',(id, nombre),)
+
+        #Generamos COMMIT
+        mysql.connection.commit()
+
+        #Cerramos BD
+        cur.close()
+
+        #Mensaje de éxito
+        flash("✅ Categoria de prendas creada de manera éxitosa", "success")
+
+        return redirect(url_for('categoriaPrendas'))
+    
+    #Si no es metodo POST, y es método GET mostrar los datos existentes
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT IDCATEGORIA, NOMBRE FROM CATEGORIAPRENDAS')
+    categorias = cur.fetchall()
+
+    return render_template('/administrador/categoriaPrendas/categoriaPrendas.html', categorias = categorias)
+
+#Editar Prenda
+@app.route('/categoriaPrenda/editar_categoria/<int:idcategoria>', methods=['GET', 'POST'])
+def editar_categoria(idcategoria):
+    #Verificar que el formulario se haya enviado
+    if request.method == 'POST':
+        
+        #Capturamos los datos ingresados
+        nombre = request.form['nombre']
+
+        #Creamos instancia BD
+        cur = mysql.connection.cursor()
+
+        #Generamos UPDATE
+        cur.execute('UPDATE CATEGORIAPRENDAS SET NOMBRE = %s WHERE IDCATEGORIA = %s',(nombre, idcategoria))
+
+        #Guardamos UPDATE
+        mysql.connection.commit()
+
+        #Cerramos BD
+        cur.close()
+
+        #Enviamos mensaje de éxito
+        flash("✅ Dato actualizado correctamente", "success")
+        return redirect(url_for('categoriaPrendas'))
+    
+    #Si es GET, solo mostramos los datos a actualizar
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT IDCATEGORIA, NOMBRE FROM CATEGORIAPRENDAS WHERE IDCATEGORIA = %s', (idcategoria))
+    categoria = cur.fetchone()
+    cur.close()
+    
+    return render_template('/administrador/categoriaPrendas/editarCategoriaPrendas.html', categoria = categoria)
 
 #Catalogo de Prendas
 @app.route('/catalogoPrendas')
@@ -302,7 +376,7 @@ def roles():
         cur.close()
 
         #Mandamos mensaje de exito
-        flash("Nuevo rol creado con éxito", "success")
+        flash("✅ Nuevo rol creado con éxito", "success")
         
         #Actualizamos la página de roles
         return redirect(url_for('roles'))
@@ -340,7 +414,7 @@ def editar_rol(idrol):
         cur.close()
 
         #Mensaje de exito
-        flash("Dato actualizado correctamente", "success")
+        flash("✅ Dato actualizado correctamente", "success")
         return redirect(url_for('roles'))
     
     #Si es GET, mostrar los datos actuales
@@ -358,17 +432,18 @@ def eliminar_rol(idrol):
     cur.execute('DELETE FROM ROLES WHERE IDROL=%s', (idrol,))
     mysql.connection.commit()
     cur.close()
-    flash("Rol eliminado correctamente", "success")
+    flash("✅ Rol eliminado correctamente", "success")
     return redirect(url_for('roles'))
 
 #Nueva Materia Prima
 @app.route('/materiaPrima', methods=['GET', 'POST'])
 def materiaPrima():
-    if request.method == 'POST' and 'nombre' in request.form and 'unidad' in request.form:
+    if request.method == 'POST' and 'nombre' in request.form and 'unidad' in request.form and 'stock' in request.form:
 
         #Capturamos los datos ingresados en el form
         nombre = request.form['nombre'].strip() #El STRIP elimina espacios al inicio y final
         unidad = request.form['unidad'].strip()
+        stock = request.form['stock'].strip()
 
         #Creamos una instancia de BD para generar consultas
         cur = mysql.connection.cursor()
@@ -388,7 +463,7 @@ def materiaPrima():
         id = (result['max_id'] or 0) + 1
 
         #Generamos INSERT
-        cur.execute('INSERT INTO MATERIAPRIMA(IDMATERIAPRIMA, NOMBREMATERIAPRIMA, CANTIDAD, UNIDADMEDIDA) VALUES (%s, %s, %s, %s)', (id, nombre, 0, unidad),)
+        cur.execute('INSERT INTO MATERIAPRIMA(IDMATERIAPRIMA, NOMBREMATERIAPRIMA, CANTIDAD, UNIDADMEDIDA, STOCKMINIMO) VALUES (%s, %s, %s, %s, %s)', (id, nombre, 0, unidad, stock),)
 
         #Guardamos INSERT
         mysql.connection.commit()
@@ -402,11 +477,64 @@ def materiaPrima():
     
     #SI ES GET MOSTRAMOS MATERIAS PRIMAS EXISTENTES
     cur = mysql.connection.cursor()
-    cur.execute('SELECT NOMBREMATERIAPRIMA, CANTIDAD FROM MATERIAPRIMA')
+    cur.execute('SELECT IDMATERIAPRIMA, NOMBREMATERIAPRIMA, CANTIDAD FROM MATERIAPRIMA')
     materias = cur.fetchall()
     return render_template('administrador/materiaPrima/materiaPrima.html', materias = materias)
 
+#Editar Materia Prima
+@app.route('/materiaPrima/editar_materia/<int:idmateriaprima>', methods=['GET', 'POST'])
+def editar_materia(idmateriaprima):
+    #Verificamos si el método es POST (si le dio actualizar a la tabla de editar materia)
+    if request.method == 'POST':
+
+        #Obtener los datos colocados en el formulario editar
+        nombre = request.form['nombre']
+        cantidad = request.form['cantidad']
+        unidad = request.form['unidad']
+        stock = request.form['stock']
+
+        #Creamos instancia para la BD
+        cur = mysql.connection.cursor()
+
+        #Ejecutamos la sentencia UPDATE
+        cur.execute('UPDATE MATERIAPRIMA SET NOMBREMATERIAPRIMA =%s, CANTIDAD=%s, UNIDADMEDIDA=%s, STOCKMINIMO=%s WHERE IDMATERIAPRIMA = %s',(nombre, cantidad, unidad, stock,idmateriaprima))
+
+        #Guardamos la sentencia
+        mysql.connection.commit()
+
+        #Cerramos BD
+        cur.close()
+
+        #Mensaje de éxito
+        flash("✅ Dato actualizado correctamente", "success")
+        return redirect(url_for('materiaPrima'))
+
+    #SI ES GET,MOSTRAMOS LOS DATOS ACTUALES
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT IDMATERIAPRIMA, NOMBREMATERIAPRIMA, CANTIDAD, UNIDADMEDIDA, STOCKMINIMO FROM MATERIAPRIMA WHERE IDMATERIAPRIMA=%s', (idmateriaprima,))
+    materia = cur.fetchone()
+    cur.close()
+
+    return render_template('administrador/materiaPrima/editarMateriaPrima.html', materia = materia)
+
+#Eliminar MateriaPrima
+@app.route('/materiaPrima/eliminar_materia/<int:idmateriaprima>',methods=['GET'])
+def eliminar_materia(idmateriaprima):
+    #Creamos instancia BD
+    cur = mysql.connection.cursor()
+
+    #Ejecutamos DELETE
+    cur.execute('DELETE FROM MATERIAPRIMA WHERE IDMATERIAPRIMA=%s',(idmateriaprima,))
+
+    #Guardamos sentencia en la bd
+    mysql.connection.commit()
     
+    #Cerramos BD
+    cur.close()
+
+    #Mensaje Exito
+    flash("✅ Materia Prima eliminada correctamente", "success")
+    return redirect(url_for('materiaPrima'))
 
 #Función CRUD Servicios
 @app.route('/servicio')
