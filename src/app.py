@@ -303,11 +303,23 @@ def editar_categoria(idcategoria):
     
     #Si es GET, solo mostramos los datos a actualizar
     cur = mysql.connection.cursor()
-    cur.execute('SELECT IDCATEGORIA, NOMBRE FROM CATEGORIAPRENDAS WHERE IDCATEGORIA = %s', (idcategoria))
+    cur.execute('SELECT IDCATEGORIA, NOMBRE FROM CATEGORIAPRENDAS WHERE IDCATEGORIA = %s', (idcategoria,))
     categoria = cur.fetchone()
     cur.close()
     
     return render_template('/administrador/categoriaPrendas/editarCategoriaPrendas.html', categoria = categoria)
+
+#Eliminar Prenda
+@app.route('/categoriaPrenda/eliminar_categoria/<int:idcategoria>')
+def eliminar_categoria(idcategoria):
+    cur = mysql.connection.cursor()
+    cur.execute('DELETE FROM CATEGORIAPRENDAS WHERE IDCATEGORIA = %s', (idcategoria,))
+    mysql.connection.commit()
+    cur.close()
+
+    flash("✅ Categoría eliminada correctamente", "success")
+    return redirect(url_for('categoriaPrendas'))
+    
 
 #Catalogo de Prendas
 @app.route('/catalogoPrendas')

@@ -1,0 +1,243 @@
+/* === VARIABLES DE COLOR Y ESTILO === */
+:root {
+    --color-bg: #f7eccc;
+    --color-blue: #2b86c0;
+    --color-darkblue: #2f5fb0;
+    --color-text: #333;
+    --radius: 12px;
+    --shadow: 0 8px 16px rgba(0,0,0,0.1);
+    --shadow-hover: 0 18px 35px rgba(0,0,0,0.2);
+}
+
+/* === ESTILO GENERAL === */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--color-bg);
+    font-family: 'Nunito', sans-serif;
+    color: var(--color-text);
+    min-height: 100vh;
+}
+
+/* === CONTENEDOR PRINCIPAL === */
+.app {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+    background: #fff;
+    width: 240px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+}
+
+.logo-box {
+    background: var(--color-blue);
+    border-radius: var(--radius);
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.logo-box h2 {
+    font-family: 'Fredoka One', cursive;
+    color: #fff;
+    font-size: 35px;
+}
+
+.menu ul {
+    list-style: none;
+}
+
+.menu li {
+    padding: 8px 0;
+    border-bottom: 2px solid #b7d9f3;
+    transition: background 0.3s;
+}
+
+.menu a {
+    text-decoration: none;
+    color: var(--color-darkblue);
+    font-weight: 700;
+    font-size: 14px;
+    display: block;
+    padding: 5px;
+    border-radius: var(--radius);
+    transition: all 0.3s;
+}
+
+.menu a:hover {
+    background: var(--color-blue);
+    color: #fff;
+}
+
+.menu a.active {
+    color: var(--color-blue);
+    font-weight: 800;
+}
+
+/* === CONTENIDO PRINCIPAL === */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background: transparent;
+}
+
+/* === ENCABEZADO === */
+.topbar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.header-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.header-right {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+.icon-logo {
+    width: 70px;
+    height: 70px;
+    border: 3px solid var(--color-blue);
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.topbar h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 32px;
+    color: var(--color-darkblue);
+}
+
+/* Barra de "letrero" */
+.display-only {
+    cursor: default;
+    background: #fff;
+    border: 2px solid #b7d9f3;
+    border-radius: 20px;
+    padding: 12px 40px;
+    width: 100%;
+    max-width: calc(100% - 80px);
+    font-size: 16px;
+    color: var(--color-darkblue);
+    text-align: left;
+    user-select: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+}
+
+/* === TARJETÓN DE EDICIÓN MODERNO === */
+.edit-card {
+    background: #fff;
+    padding: 40px 50px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    max-width: 700px;
+    width: 100%;
+    margin: 0 auto;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 6px solid var(--color-blue);
+}
+
+.edit-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+}
+
+.edit-card h2 {
+    font-family: 'Fredoka One', cursive;
+    color: var(--color-blue);
+    font-size: 28px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.edit-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.edit-card label {
+    font-weight: 600;
+    color: var(--color-darkblue);
+}
+
+.edit-card input {
+    padding: 14px;
+    border-radius: 10px;
+    border: 2px solid #b7d9f3;
+    outline: none;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.edit-card input:focus {
+    border-color: var(--color-blue);
+    box-shadow: 0 0 10px rgba(43, 134, 192, 0.3);
+}
+
+.edit-card input[readonly] {
+    background: #f1f1f1;
+    border-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.edit-card .btn-primary {
+    background: var(--color-blue);
+    color: #fff;
+    padding: 14px 30px;
+    border-radius: 10px;
+    font-weight: 700;
+    border: none;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.edit-card .btn-primary:hover {
+    background: var(--color-darkblue);
+    transform: scale(1.05);
+}
+
+.edit-card .btn-outline {
+    background: #e0f0ff;
+    color: var(--color-blue);
+    padding: 14px 30px;
+    border-radius: 10px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.edit-card .btn-outline:hover {
+    background: #b0d4f1;
+    transform: scale(1.05);
+}

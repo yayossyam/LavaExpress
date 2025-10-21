@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Categoria Prendas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/administrador/categoria/editarCategoria.css')}}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="app">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo-box">
+                <h2>LavaSoft</h2>
+            </div>
+
+            <!-- Menu -->
+            <nav class="menu">
+                <ul>
+                    <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
+                    <li><a href="{{ url_for('pedidos') }}">Pedidos</a></li>
+                    <li><a href="{{ url_for('cambioEstadoPedido') }}">Cambiar Estado de Pedido</a></li>
+                    <li><a href="{{ url_for('proveedores') }}">Proveedores</a></li>
+                    <li><a href="{{ url_for('compraMateriaPrima') }}">Compra Materia Prima</a></li>
+                    <li><a href="{{ url_for('catalogoProductos') }}">Catálogo Productos</a></li>
+                    <li><a href="{{ url_for('categoriaPrendas') }}">Categoría de Prendas</a></li>
+                    <li><a href="{{ url_for('catalogoPrendas') }}">Catálogo de Prendas</a></li>
+                    <li><a href="{{ url_for('cargas') }}">Cargas</a></li>
+                    <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
+                    <li><a href="{{ url_for('roles') }}">Rol</a></li>
+                    <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
+                    <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                    <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <div class="main">
+
+            <!-- ENCABEZADO -->
+            <header class="topbar">
+                <div class="header-center">
+                    <img src="{{ url_for('static', filename='img/logoo.jpeg')}}" class="icon-logo">
+                    <h1 class="logo-text">LavaExpress</h1>
+                </div>
+
+                <div class="header-right">
+                    <div class="search-bar display-only">Editar Categoria Prenda</div>
+                </div>
+            </header>
+
+            <!-- CUERPO PRINCIPAL -->
+            <div class="content">
+
+                <!-- TARJETON DE EDICIÓN -->
+                <section class="card edit-card">
+                    <form class="register-form" action="{{url_for('editar_categoria', idcategoria = categoria.IDCATEGORIA)}}" method="POST">
+
+                        <!-- MOSTRAR NOMBRE ACTUAL -->
+                        <label for="nombre_actual">Nombre actual:</label>
+                        <input type="text" id="nombre_actual" name="nombre_actual" value="{{ categoria.NOMBRE }}" readonly>
+
+                        <!-- NUEVO NOMBRE-->
+                        <label for="nombre">Nuevo nombre:</label>
+                        <input type="text" name="nombre" id="nombre" placeholder="Ingrese el nuevo nombre" required>
+
+                        <!-- BOTON DE ACTUALIZACIÓN -->
+                        <button type="submit" class="btn btn-primary">Actualizar</button>
+                        <a href="{{ url_for('categoriaPrendas') }}" class="btn btn-outline">Cancelar</a>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
