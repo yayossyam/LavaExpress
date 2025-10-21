@@ -145,7 +145,7 @@ body {
 
 /* === BLOQUE DE REPORTES === */
 .reportes-config {
-    background: var(--color-bg); /* Café */
+    background: var(--color-bg);
     border-radius: var(--radius);
     padding: 20px;
     text-align: center;
@@ -155,7 +155,7 @@ body {
     font-family: 'Fredoka One', cursive;
     font-size: 1.8rem;
     color: var(--color-blue);
-    background-color: var(--color-bg); /* Café */
+    background-color: var(--color-bg);
     padding: 15px 0;
     border-radius: var(--radius) var(--radius) 0 0;
     margin-bottom: 10px;
@@ -164,28 +164,33 @@ body {
 /* === BOTONES DE REPORTES === */
 .reportes-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 botones por fila */
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
     justify-items: center;
 }
+
+.btn-back {
+    grid-column: 1 / -1; /* Ocupa toda la fila */
+    justify-self: center; /* Lo centra horizontalmente */
+}
+
 
 .btn-reporte {
     background-color: var(--color-blue);
     color: #fff;
     border: none;
     border-radius: var(--radius);
-    padding: 20px 30px;    
+    padding: 20px 30px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    width: 220px;        /* ancho fijo */
-    height: 60px;        /* altura fija para todos los botones de fecha */
+    width: 220px;
+    transition: all 0.3s;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    transition: all 0.3s;
 }
 
 .btn-reporte:hover {
@@ -199,11 +204,7 @@ body {
     object-fit: contain;
 }
 
-/* === BOTÓN REGRESAR === */
-.btn-back-container {
-    margin-top: 30px;
-}
-
+/* === BOTÓN GENERAR === */
 .btn-back {
     background-color: #5dade2;
     color: white;
@@ -218,4 +219,29 @@ body {
 
 .btn-back:hover {
     background-color: #2f5fb0;
+}
+
+/* === TABLA DE VENTAS === */
+.historial-ventas {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.historial-ventas .fecha-rango {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--color-darkblue);
+}
+
+.historial-ventas h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--color-blue);
+    margin-bottom: 15px;
+}
+
+.table-ventas {
+    margin: 0 auto;
+    width: 90%;
 }

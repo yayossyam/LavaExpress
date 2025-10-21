@@ -325,23 +325,23 @@ def reportes():
     return render_template('administrador/reportes/index.html')
 
 #Reportes Ventas
-@app.route('/reporteVentas')
-def reporteVentas():
+@app.route('/reportesVentas')
+def reportes_ventas():
     return render_template('administrador/reportes/reportesVentas.html')
 
 #Reportes Reabastecimiento
-@app.route('/reporteReabastecimiento')
-def reporteReabastecimiento():
+@app.route('/reportesReabastecimiento')
+def reportes_reabastecimiento():
     return render_template('administrador/reportes/reportesReabastecimiento.html')
 
 #Reportes Tickets
-@app.route('/reporteTicket')
-def reporteTickets():
+@app.route('/reportesTicket')
+def reportes_tickets():
     return render_template('administrador/reportes/reportesTicket.html')
 
 #Reportes Inventario
-@app.route('/reporteInventario')
-def reporteInventario():
+@app.route('/reportesInventario')
+def reportes_inventario():
     return render_template('administrador/reportes/reportesInventario.html')
 
 #Roles

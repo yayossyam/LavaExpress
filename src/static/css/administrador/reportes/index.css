@@ -229,3 +229,47 @@ body {
 .btn-back:hover {
     background-color: #2f5fb0;
 }
+
+
+/* === TABLA DE VENTAS === */
+.table-container {
+    margin-top: 30px;
+    overflow-x: auto;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.table-ventas {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    font-family: 'Nunito', sans-serif;
+}
+
+.table-ventas thead {
+    background-color: #2b86c0;
+    color: #fff;
+    text-align: center;
+    font-weight: 700;
+}
+
+.table-ventas th, .table-ventas td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: center;
+}
+
+.table-ventas tbody tr {
+    transition: all 0.3s;
+}
+
+.table-ventas tbody tr:hover {
+    background-color: #f0f8ff;
+}
+
+.table-ventas tbody td:nth-child(8) {
+    font-weight: 600;
+    color: #2f5fb0;
+}

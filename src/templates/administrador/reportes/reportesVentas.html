@@ -6,7 +6,7 @@
     <title>Reportes</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/reportes/index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/reportes/allReportes.css') }}">
 </head>
 <body>
     <div class="app">
@@ -18,20 +18,20 @@
             </div>
             <nav class="menu">
                 <ul>
-                    <li><a href="#">Registrar Usuario</a></li>
-                    <li><a href="#">Pedidos</a></li>
-                    <li><a href="#">Cambiar Estado de Pedido</a></li>
-                    <li><a href="#">Proveedores</a></li>
-                    <li><a href="#">Compra Materia Prima</a></li>
-                    <li><a href="#">Catálogo Productos</a></li>
-                    <li><a href="#">Categoría de Prendas</a></li>
-                    <li><a href="#">Catálogo de Prendas</a></li>
-                    <li><a href="#">Cargas</a></li>
-                    <li><a href="#" class="active">Reportes</a></li>
-                    <li><a href="#">Rol</a></li>
-                    <li><a href="#">Materia Prima</a></li>
-                    <li><a href="#">Servicios</a></li>
-                    <li><a href="#">Cerrar Sesión</a></li>
+                    <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
+                    <li><a href="{{ url_for('pedidos') }}">Pedidos</a></li>
+                    <li><a href="{{ url_for('cambioEstadoPedido') }}">Cambiar Estado de Pedido</a></li>
+                    <li><a href="{{ url_for('proveedores') }}">Proveedores</a></li>
+                    <li><a href="{{ url_for('compraMateriaPrima') }}">Compra Materia Prima</a></li>
+                    <li><a href="{{ url_for('catalogoProductos') }}">Catálogo Productos</a></li>
+                    <li><a href="{{ url_for('categoriaPrendas') }}">Categoría de Prendas</a></li>
+                    <li><a href="{{ url_for('catalogoPrendas') }}">Catálogo de Prendas</a></li>
+                    <li><a href="{{ url_for('cargas') }}">Cargas</a></li>
+                    <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
+                    <li><a href="{{ url_for('roles') }}">Rol</a></li>
+                    <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
+                    <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                    <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
                 </ul>
             </nav>
         </aside>
@@ -57,26 +57,52 @@
                     <h2>REPORTE DE VENTAS</h2>
                     <br>
 
-                    <div class="reportes-container">
-                        <form action="#">
-                            <button type="submit" class="btn-reporte">
-                                <img src="{{ url_for('static', filename='img/administrador/reportes/iconoFecha.jpeg') }}" class="btn-icono">
-                                <span>FECHA INICIO</span>
-                            </button>
-                        </form>
-                        <form action="#">
-                            <button type="submit" class="btn-reporte">
-                                <img src="{{ url_for('static', filename='img/administrador/reportes/iconoFecha.jpeg') }}" class="btn-icono">
-                                <span>FECHA FINAL</span>
-                            </button>
-                        </form>
-                    </div>
+                    <!-- FORMULARIO DE FECHAS -->
+                    <form action="{{ url_for('reportes') }}" method="POST" class="reportes-container">
+                        <button type="button" class="btn-reporte" onclick="document.getElementById('fecha_inicio').click()">
+                            <img src="{{ url_for('static', filename='img/administrador/reportes/iconoFecha.jpeg') }}" class="btn-icono">
+                            <span>FECHA INICIO</span>
+                        </button>
+                        <input type="date" name="fecha_inicio" id="fecha_inicio" style="display:none">
 
-                    <div class="btn-back-container">
-                        <a href="{{ url_for('inicioAdmin') }}" class="btn-back">Generar</a>
+                        <button type="button" class="btn-reporte" onclick="document.getElementById('fecha_final').click()">
+                            <img src="{{ url_for('static', filename='img/administrador/reportes/iconoFecha.jpeg') }}" class="btn-icono">
+                            <span>FECHA FINAL</span>
+                        </button>
+                        <input type="date" name="fecha_final" id="fecha_final" style="display:none">
+
+                        <button type="submit" class="btn-back">Generar</button>
+                    </form>
+
+                    <!-- TABLA DE VENTAS -->
+                    {% if ventas %}
+                    <div class="table-container historial-ventas">
+                        <p class="fecha-rango">Desde {{ fecha_inicio }} hasta {{ fecha_final }}</p>
+                        <h2>Historial de Ventas</h2>
+                        <table class="table-ventas">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Total de Pedidos</th>
+                                    <th>Total Vendido</th>
+                                    <th>Promedio por Pedido</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for venta in ventas %}
+                                <tr>
+                                    <td>{{ venta.fecha }}</td>
+                                    <td>{{ venta.total_pedidos }}</td>
+                                    <td>{{ venta.total_vendido }}</td>
+                                    <td>{{ venta.promedio_por_pedido }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
+                    {% endif %}
+
                 </div>
-                </form>
             </main>
         </div>
     </div>
