@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compra Materia Prima</title>
+    <title>Inicio</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/compraMateriaPrima.css')}}">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"> <!--Fuentes de Letra-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/verUsuarios.css')}}">
 </head>
 <body>
+    <!-- CONTENEDOR PRINCIPAL -->
     <div class="app">
 
         <!-- SIDEBAR -->
@@ -16,6 +17,8 @@
             <div class="logo-box">
                 <h2>LavaSoft</h2>
             </div>
+
+            <!-- Menu -->
             <nav class="menu">
                 <ul>
                     <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
@@ -46,73 +49,67 @@
                     <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
                     <h1>LavaExpress</h1>
                 </div>
+
                 <div class="header-right">
-                    <div class="search-bar display-only">Compra Materia Prima</div>
+                    <div class="search-bar display-only">Usuarios</div>
                 </div>
             </header>
 
             <!-- CUERPO PRINCIPAL -->
             <main class="content">
 
-                <!-- BLOQUE COMPRA GENERAL -->
-                <div class="block compra-general">
-                    <h2>Compra General</h2>
-                    <div class="form-row">
-                        <div class="field-group">
-                            <label for="id-compra">ID Compra</label>
-                            <input type="text" id="id-compra" placeholder="ID Compra">
-                        </div>
-                        <div class="field-group">
-                            <label for="proveedor">Proveedor</label>
-                            <select id="proveedor">
-                                {% for proveedor in proveedores %}
-                                <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="field-group">
-                            <label for="fecha">Fecha</label>
-                            <input type="date" id="fecha">
-                        </div>
-                        <div class="field-group">
-                            <label for="empleado">Empleado que lo realizó</label>
-                            <select id="empleado">
-                                {% for empleado in empleados %}
-                                <option value="{{ empleado.id }}">{{ empleado.nombre }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                <!-- LINEAS DECORATIVAS -->
+                <div class="decor decor-left"></div>
+                <div class="decor decor-right"></div>
 
-                <!-- BLOQUE COMPRA DETALLE -->
-                <div class="block compra-detalle">
-                    <h2>Compra Detalle</h2>
-                    <table class="table-compra">
+                <!-- TABLA DE USUARIOS -->
+                <section class="usuarios-container card">
+                    <h2>Usuarios Registrados</h2>
+                    <table>
                         <thead>
                             <tr>
-                                <th>Nombre del Producto</th>
-                                <th>Cantidad Comprada</th>
+                                <th>Nombre</th>
+                                <th>Rol</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for producto in productos %}
+                            {% for usuario in usuarios %}
                             <tr>
-                                <td>{{ producto.nombre }}</td>
-                                <td><input type="number" min="0" placeholder="0"></td>
+                                <td>{{ usuario.nombre_completo }}</td>
+                                <td>{{ usuario.NOMROL }}</td>
+                                <td>
+                                    <button class="btn-edit" onclick="window.location.href='{{url_for('editar_usuarios', idusuario = usuario.IDUSER) }}'">✏️</button>
+                                    <button class="btn-delete" onclick="abrirModalEliminar({{usuario.IDUSER}})">🗑️</button>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
-                </div>
+                </section>
 
-                <!-- BOTONES EN FILA -->
-                <div class="btn-row">
-                    <button type="button" class="btn-save">Guardar Compra</button>
-                    <button class="btn-back">Regresar</button>
+                <!-- BOTÓN REGRESAR CENTRADO DEBAJO -->
+                <div class="back-container">
+                    <button class="btn-back" onclick="window.history.back()">Regresar</button>
                 </div>
             </main>
         </div>
     </div>
+
+    <!-- === MODAL DE CONFIRMACIÓN === -->
+    <div id="modalEliminar" class="modal">
+        <div class="modal-content">
+            <h3>🗑️Eliminar Usuario</h3>
+            <p>¿Estás seguro de eliminar este usuario?</p>
+            <div class="buttons">
+                <button class="btn-confirm" id="btnConfirmarEliminar">Sí, eliminar</button>
+                <button class="btn-cancel" onclick="cerrarModalEliminar()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/administrador/admin.js') }}"></script>
+
 </body>
 </html>

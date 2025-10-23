@@ -13,6 +13,7 @@ app.config['MYSQL_USER'] = DB_CONFIG['user']
 app.config['MYSQL_PASSWORD'] = DB_CONFIG['password']
 app.config['MYSQL_DB'] = DB_CONFIG['db']
 app.config['MYSQL_CURSORCLASS'] = DB_CONFIG['cursorclass']
+app.config['MYSQL_PORT'] = DB_CONFIG['port']
 mysql= MySQL(app)
 
 #Ruta INICIAL
@@ -104,15 +105,118 @@ def inicioreporte():
     return render_template('administrador/reportes/index.html')
 
 #Administrador
-#Función Inicio Administrador      
-@app.route('/inicioAdmin')
+#Crear Usuarios     
+@app.route('/inicioAdmin', methods=['GET', 'POST'])
 def inicioAdmin():
-    return render_template('administrador/admin.html')
+    if request.method == 'POST' and 'nombre' in request.form and 'apellido' in request.form and 'correo' in request.form and 'password' in request.form and 'rol' in request.form:
+        nombre = request.form['nombre']
+        apellido = request.form['apellido']
+        correo = request.form['correo']
+        contra = request.form['password']
+        rol = request.form['rol']
+
+        #Creamos instancia BD
+        cur = mysql.connection.cursor()
+
+        #Verificar que solo exista un correo dado de alta
+        cur.execute('SELECT * FROM USUARIO WHERE CORREO = %s', (correo,))
+        existente = cur.fetchone()
+
+        if existente:
+            flash ("❌El correo ya esta en uso", "danger")
+            return redirect(url_for('inicioAdmin'))
+        
+        #Obtenemos el ultimo ID
+        cur.execute('SELECT MAX(IDUSER) AS max_id FROM USUARIO')
+        resultado = cur.fetchone()
+        id = (resultado['max_id'] or 0) + 1
+
+        #Si no existe correo, procedemos a generar INSERT
+        cur.execute('INSERT INTO USUARIO (IDUSER, IDROL, NOMBRE, APATERNO, CORREO, PASS) VALUES (%s, %s, %s, %s, %s, %s)', (id, rol, nombre, apellido, correo, contra))
+
+        #Guardamos COMMIT
+        mysql.connection.commit()
+
+        #Cerramos BD
+        cur.close()
+
+        #Mensaje de exito
+        flash("✅ Usuario registrado correctamente", "success")
+
+        return redirect(url_for('inicioAdmin'))
+    
+    #Si es GET, mostramos los roles existentes
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT IDROL, NOMROL FROM ROLES')
+    roles = cur.fetchall()
+    cur.close()
+
+    return render_template('administrador/nuevoUsuario/admin.html', roles = roles)
 
 #Ver Usuario
-@app.route('/verUsuarios')
+@app.route('/verUsuarios', methods=['GET'])
 def verUsuarios():
-    return render_template('administrador/verUsuarios.html')
+    cur = mysql.connection.cursor()
+
+    #Necesitamos CONCATENAR USUARIO Y ROLES
+    cur.execute("""SELECT u.IDUSER, CONCAT(u.NOMBRE, ' ', u.APATERNO) AS nombre_completo, r.NOMROL FROM USUARIO u JOIN ROLES r ON u.IDROL = r.IDROL """)
+    usuarios = cur.fetchall()
+    cur.close()
+    return render_template('administrador/nuevoUsuario/verUsuarios.html', usuarios = usuarios)
+
+#Editar Usuario
+@app.route('/verUsuarios/editar_usuarios/<int:idusuario>', methods=['GET', 'POST'])
+def editar_usuarios(idusuario):
+    if request.method == 'POST' and 'nombre' in request.form and 'apellido' in request.form and 'rol' in request.form:
+
+        #Capturamos nuevos datos ingresados
+        nombre = request.form['nombre']
+        apellido = request.form['apellido']
+        rol = request.form['rol']
+
+        #Creamos instancia BD
+        cur = mysql.connection.cursor()
+
+        #Generamos UPDATE
+        cur.execute('UPDATE USUARIO SET IDROL = %s, NOMBRE = %s, APATERNO = %s WHERE IDUSER = %s', (rol, nombre, apellido, idusuario))
+
+        #Guardamos UPDATE
+        mysql.connection.commit()
+
+        #Cerramos BD
+        cur.close()
+
+        #Mensaje de éxito
+        flash("✅ Dato actualizado correctamente", "success")
+
+        return redirect(url_for('verUsuarios'))
+    
+    #Si es GET, mostramos datos a editar
+    cur = mysql.connection.cursor()
+
+    #Mostramos todos los roles existentes al usuario
+    cur.execute("SELECT IDROL, NOMROL FROM ROLES")
+    roles = cur.fetchall()
+
+    #Mostramos los valores actuales del valor a editar
+    cur.execute("""SELECT U.IDUSER, U.NOMBRE, U.APATERNO, U.IDROL, R.NOMROL FROM USUARIO U LEFT JOIN ROLES R ON U.IDROL = R.IDROL WHERE U.IDUSER = %s """, (idusuario,))
+    usuario = cur.fetchone()
+
+    cur.close()
+
+    return render_template('administrador/nuevoUsuario/editarUsuario.html', roles = roles, usuario = usuario)
+
+#Eliminar Usuario
+@app.route('/verUsuarios/eliminar_usuarios/<int:idusuario>')
+def eliminar_usuarios(idusuario):
+    cur = mysql.connection.cursor()
+    cur.execute('DELETE FROM USUARIO WHERE IDUSER = %s', (idusuario,))
+    mysql.connection.commit()
+    cur.close()
+
+    flash("✅ Usuario eliminado correctamente", "success")
+
+    return redirect(url_for('verUsuarios'))
 
 #Pedidos
 @app.route('/pedidos')
@@ -548,10 +652,174 @@ def eliminar_materia(idmateriaprima):
     flash("✅ Materia Prima eliminada correctamente", "success")
     return redirect(url_for('materiaPrima'))
 
-#Función CRUD Servicios
-@app.route('/servicio')
+#Nuevo servicio
+@app.route('/servicios', methods=['GET', 'POST'])
 def servicios():
-    return render_template('administrador/servicio.html')
+    if request.method == 'POST' and 'nombre' in request.form:
+        #Capturamos los datos
+        nombre = request.form['nombre']
+
+        #Creamos instancia BD
+        cur =mysql.connection.cursor()
+
+        #Verificamos que no exista datos duplicados
+        cur.execute('SELECT * FROM SERVICIOPEDIDO WHERE LOWER(NOMSERVICIO) = %s', (nombre.lower(),))
+        existente = cur.fetchone()
+
+        if existente:
+            flash("❌ El tipo de servicio ya existe", "danger")
+            return redirect(url_for('servicios'))
+        
+        #Obtener el ultimo id
+        cur.execute('SELECT MAX(IDSERVICIO) AS max_id FROM SERVICIOPEDIDO')
+        result = cur.fetchone()
+        id = (result['max_id'] or 0) + 1
+        
+        #Si no existe, generamos INSERT
+        cur.execute('INSERT INTO SERVICIOPEDIDO (IDSERVICIO, NOMSERVICIO) VALUES (%s, %s)', (id, nombre),)
+
+        #Guardamos INSERT
+        mysql.connection.commit()
+
+        #Cerramos BD
+        cur.close()
+
+        #Mensaje de éxito
+        flash("✅ Tipo de servicio creado de manera éxitosa", "success")
+        return redirect(url_for('servicios'))
+    
+    # Si el metodo es GET, mostramos los datos existentes
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT IDSERVICIO, NOMSERVICIO FROM SERVICIOPEDIDO')
+    servicios = cur.fetchall()
+
+    return render_template('/administrador/servicios/servicios.html', servicios = servicios)
+
+#Editar Servicios
+@app.route('/servicios/editar_servicios/<int:idservicio>', methods=['GET', 'POST'])
+def editar_servicios(idservicio):
+    if request.method == 'POST':
+        #Recuperar nuevos datos
+        nombre = request.form['nombre']
+
+        #Crear instancia BD
+        cur = mysql.connection.cursor()
+
+        #Generar UPDATE
+        cur.execute('UPDATE SERVICIOPEDIDO SET NOMSERVICIO = %s WHERE IDSERVICIO = %s', (nombre, idservicio))
+
+        #Guardar UPDATE
+        mysql.connection.commit()
+
+        #Cerrar BD
+        cur.close()
+
+        #Mensaje éxito
+        flash("✅ Dato actualizado correctamente", "success")
+        return redirect(url_for('servicios'))
+    
+    #Si es GET, MUESTRA LOS DATOS A EDITAR
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT IDSERVICIO, NOMSERVICIO FROM SERVICIOPEDIDO WHERE IDSERVICIO = %s', (idservicio,))
+    servicio = cur.fetchone()
+    cur.close()
+    return render_template('administrador/servicios/editarServicios.html', servicio = servicio)
+
+#Eliminar Servicios
+@app.route('/servicios/eliminar_servicios/<int:idservicio>')
+def eliminar_servicios(idservicio):
+    cur = mysql.connection.cursor()
+    cur.execute('DELETE FROM SERVICIOPEDIDO WHERE IDSERVICIO = %s', (idservicio,))
+    mysql.connection.commit()
+    cur.close()
+    flash("✅ Tipo de servicio eliminado correctamente", "success")
+    return redirect(url_for('servicios'))
+
+#Nuevo Estatus
+@app.route('/estatus', methods=['GET', 'POST'])
+def estatus():
+    if request.method == 'POST':
+        #Capturamos los datos del form
+        nombre = request.form['nombre']
+
+        #Creamos instancia de la BD
+        cur = mysql.connection.cursor()
+
+        #Verificamos que no exista datos duplicados
+        cur.execute('SELECT * FROM ESTATUSPEDIDO WHERE LOWER(NOMESTATUS) = %s', (nombre.lower(),))
+        existente = cur.fetchone()
+
+        #Si existe mandamos mensaje de error
+        if existente:
+            flash("❌ El estatus ya existe", "danger")
+            return redirect(url_for('estatus'))
+        
+        #Obtener el ultimo ID
+        cur.execute('SELECT MAX(IDESTATUS) AS max_id FROM ESTATUSPEDIDO')
+        resultado = cur.fetchone()
+        id = (resultado['max_id'] or 0) + 1
+        
+        #Si no existe, procedemos con el INSERT
+        cur.execute('INSERT INTO ESTATUSPEDIDO(IDESTATUS, NOMESTATUS) VALUES (%s, %s)', (id, nombre),)
+
+        #Hacemos COMMIT
+        mysql.connection.commit()
+
+        #Cerramos BD
+        cur.close()
+
+        #Mensaje de exito
+        flash("✅ Tipo de estatus creado de manera éxitosa", "success")
+
+        return redirect(url_for('estatus'))
+    #Si es GET, mostrar los datos Existentes
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT IDESTATUS, NOMESTATUS FROM ESTATUSPEDIDO')
+    estatus = cur.fetchall()
+
+    return render_template('administrador/estatus/estatus.html', estatus = estatus)
+
+#Editar Estatus
+@app.route('/estatus/editar_estatus/<int:idestatus>', methods=['GET', 'POST'])
+def editar_estatus(idestatus):
+    if request.method == 'POST':
+        #Capturamos los nuevos valores
+        nombre = request.form['nombre']
+
+        #Creamos una instancia de BD
+        cur = mysql.connection.cursor()
+
+        #Ejecutamos UPDATE
+        cur.execute('UPDATE ESTATUSPEDIDO SET NOMESTATUS = %s WHERE IDESTATUS = %s',(nombre,idestatus))
+
+        #Guardamos UPDATE
+        mysql.connection.commit()
+
+        #Cerramos BD
+        cur.close()
+
+        #Mensaje de exito
+        flash("✅ Dato actualizado correctamente", "success")
+
+        return redirect(url_for('estatus'))
+    
+    #Si es GET mostramos los datos a editar
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT IDESTATUS, NOMESTATUS FROM ESTATUSPEDIDO WHERE IDESTATUS = %s', (idestatus,))
+    estatu = cur.fetchone()
+    cur.close()
+    return render_template('administrador/estatus/editarEstatus.html', estatu = estatu)
+
+#Eliminar Estatus
+@app.route('/estatus/eliminar_estatus/<int:idestatus>')
+def eliminar_estatus(idestatus):
+    cur = mysql.connection.cursor()
+    cur.execute('DELETE FROM ESTATUSPEDIDO WHERE IDESTATUS = %s', (idestatus,))
+    mysql.connection.commit()
+    cur.close()
+    flash("✅ Tipo de estatus eliminado correctamente", "success")
+
+    return redirect(url_for('estatus'))
 
 #Función Loggout
 @app.route('/loggoutAdmin')

@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio</title>
+    <title>Editar Estatus</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"> <!--Fuentes de Letra-->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/verUsuarios.css')}}">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/estatus.css')}}">
 </head>
 <body>
-    <!-- CONTENEDOR PRINCIPAL -->
     <div class="app">
 
         <!-- SIDEBAR -->
@@ -17,8 +16,6 @@
             <div class="logo-box">
                 <h2>LavaSoft</h2>
             </div>
-
-            <!-- Menu -->
             <nav class="menu">
                 <ul>
                     <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
@@ -33,6 +30,7 @@
                     <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
                     <li><a href="{{ url_for('roles') }}">Rol</a></li>
                     <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
+                    <li><a href="{{ url_for('estatus') }}">Estatus de Pedido</a></li>
                     <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
                     <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
                 </ul>
@@ -41,61 +39,34 @@
 
         <!-- CONTENIDO PRINCIPAL -->
         <div class="main">
-
-            <!-- ENCABEZADO -->
             <header class="topbar">
                 <div class="header-center">
-                    <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
+                    <img src="{{ url_for('static', filename='img/logoo.jpeg')}}" class="icon-logo">
                     <h1>LavaExpress</h1>
                 </div>
-
                 <div class="header-right">
-                    <div class="search-bar display-only">Usuarios</div>
+                    <div class="search-bar display-only">Editar Estatus</div>
                 </div>
             </header>
 
-            <!-- CUERPO PRINCIPAL -->
             <main class="content">
+                <section class="card edit-card">
+                    <form action="{{ url_for('editar_estatus', idestatus=estatu.IDESTATUS) }}" method="POST">
 
-                <!-- LINEAS DECORATIVAS -->
-                <div class="decor decor-left"></div>
-                <div class="decor decor-right"></div>
+                        <label for="nombre_actual">Nombre actual:</label>
+                        <input type="text" id="nombre_actual" value="{{ estatu.NOMESTATUS }}" readonly>
 
-                <!-- TABLA DE USUARIOS -->
-                <section class="usuarios-container card">
-                    <h2>Usuarios Registrados</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Rol</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for usuario in usuarios %}
-                            <tr>
-                                <td>{{ usuario.nombre }}</td>
-                                <td>{{ usuario.rol }}</td>
-                                <td>
-                                    <button class="btn-edit">✏️</button>
-                                    <button class="btn-delete">🗑️</button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                        <label for="nombre">Nuevo Nombre:</label>
+                        <input type="text" name="nombre" id="nombre" placeholder="Ingrese el nuevo nombre del estatus" required>
+
+                        <div class="buttons">
+                            <button type="submit" class="btn btn-primary">Actualizar</button>
+                            <a href="{{ url_for('estatus') }}" class="btn btn-outline">Cancelar</a>
+                        </div>
+                    </form>
                 </section>
-
-                <!-- BOTÓN REGRESAR CENTRADO DEBAJO -->
-                <div class="back-container">
-                    <button class="btn-back">Regresar</button>
-                </div>
             </main>
         </div>
     </div>
-
-    <script src="{{ url_for('static', filename='js/administrador/usuarios.js') }}"></script>
-
 </body>
 </html>

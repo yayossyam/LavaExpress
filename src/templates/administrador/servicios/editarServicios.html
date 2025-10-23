@@ -6,7 +6,7 @@
     <title>Editar Materia Prima</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/materiaPrima.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/servicios/editarServicios.css')}}">
 </head>
 <body>
     <!-- CONTENEDOR PRINCIPAL -->
@@ -51,7 +51,7 @@
                 </div>
 
                 <div class="header-right">
-                    <div class="search-bar display-only">Editar Materia Prima</div>
+                    <div class="search-bar display-only">Editar Servicios</div>
                 </div>
             </header>
 
@@ -60,49 +60,20 @@
 
                 <!-- TARJETON DE EDICIÓN -->
                 <section class="card edit-card">
-                    <form class="register-form" action="{{ url_for('editar_materia', idmateriaprima = materia.IDMATERIAPRIMA) }}" method="POST">
+                    <form class="register-form" action="{{ url_for('editar_servicios', idservicio = servicio.IDSERVICIO) }}" method="POST">
 
                         <!-- Mostrar Nombre Actual -->
                         <label for="nombre_actual">Nombre actual:</label>
-                        <input type="text" id="nombre_actual" value="{{ materia.NOMBREMATERIAPRIMA }}" readonly>
+                        <input type="text" id="nombre_actual" value="{{ servicio.NOMSERVICIO }}" readonly>
 
                         <!-- Nuevo Nombre -->
                         <label for="nombre">Nuevo Nombre:</label>
                         <input type="text" name="nombre" id="nombre" placeholder="Ingrese el nuevo nombre" required>
 
-
-                        <!-- Mostrar Cantidad Actual -->
-                        <label for="cantidad_actual">Cantidad actual:</label>
-                        <input type="text" id="cantidad_actual" value="{{ materia.CANTIDAD }}" readonly>
-
-                        <!-- Nueva Cantidad -->
-                        <label for="cantidad">Nueva Cantidad:</label>
-                        <input type="text" name="cantidad" id="cantidad" placeholder="Ingrese la nueva cantidad" required>
-
-
-                        <!-- Mostrar Unidad de Medida Actual-->
-                        <label for="unidad_actual">Unidad de medida actual:</label>
-                        <input type="text" id="unidad_actual" value="{{ materia.UNIDADMEDIDA }}" readonly>
-
-                        <!-- Nueva Unidad de Medida -->
-                        <label for="unidad">Nueva Unidad de Medida:</label>
-                        <input type="text" name="unidad" id="unidad" placeholder="Ingrese la nueva unidad de medida" required>
-
-
-                        <!-- Mostrar Stock Minimo Actual-->
-                        <label for="stock_actual">Stock mínimo actual:</label>
-                        <input type="text" id="stock_actual" value="{{ materia.STOCKMINIMO }}" readonly>
-
-                        <!-- Nuevo Stock -->
-                        <label for="stock">Nuevo Stock Mínimo:</label>
-                        <input type="text" name="stock" id="stock" placeholder="Ingrese el nuevo stock mínimo" required>
-
-
-
                         <!-- Botón de Actualización-->
                         <div class="buttons">
                             <button type="submit" class="btn btn-primary">Actualizar</button>
-                            <a href="{{ url_for('materiaPrima') }}" class="btn btn-outline">Cancelar</a>
+                            <a href="{{ url_for('servicios') }}" class="btn btn-outline">Cancelar</a>
                         </div>
                     </form>
                 </section>

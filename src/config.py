@@ -6,7 +6,8 @@ DB_CONFIG = {
     'user': 'root',
     'password': '',   # root sin contraseña
     'db': 'lavaexpress',
-    'cursorclass': 'DictCursor'
+    'cursorclass': 'DictCursor',
+    'port': 3309
 }
 
 

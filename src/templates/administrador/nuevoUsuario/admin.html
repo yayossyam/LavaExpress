@@ -33,6 +33,7 @@
                     <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
                     <li><a href="{{ url_for('roles') }}">Rol</a></li>
                     <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
+                    <li><a href="{{ url_for('estatus') }}">Estatus de Pedido</a></li>
                     <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
                     <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
                 </ul>
@@ -63,30 +64,52 @@
 
                 <!-- TARJETON DE REGISTRO -->
                 <section class="card">
-                    <form class="register-form">
+
+                    <!-- ALERTAS -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert"> 
+                                    {{message}}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+
+                    <form class="register-form" action="{{url_for('inicioAdmin')}}" method="POST">
                         <label for="nombre">Nombre:</label>
-                        <input type="text" id="nombre" placeholder="">
+                        <input type="text" id="nombre" name="nombre" placeholder="">
 
                         <label for="apellido">Apellido Paterno:</label>
-                        <input type="text" id="apellido" placeholder="">
+                        <input type="text" id="apellido" name="apellido" placeholder="">
 
                         <label for="correo">Correo:</label>
-                        <input type="email" id="correo" placeholder="">
+                        <input type="email" id="correo" name="correo" placeholder="">
 
                         <label for="password">Contraseña:</label>
-                        <input type="password" id="password" placeholder="">
+                        <input type="password" id="password" name="password" placeholder="">
 
                         <label for="rol">Rol:</label>
-                        <input type="text" id="rol" placeholder="">
+                        <select id="rol" name="rol" class="form-select">
+                            <option value="">Selecciona un rol</option>
+                            {% for rol in roles %}
+                                <option value="{{ rol.IDROL}}">{{rol.NOMROL}}</option>
+                            {% endfor %}
+                        </select>
 
                         <div class="buttons">
                             <a href="{{ url_for('verUsuarios')}}" class="btn btn-outline">Ver Usuarios</a>
-                            <button type="button" class="btn btn-primary">Guardar</button>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
                         </div>
                     </form>
                 </section>
             </main>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/administrador/admin.js') }}"></script>
 </body>
 </html>
