@@ -1,0 +1,351 @@
+/* === VARIABLES DE COLOR Y ESTILO === */
+:root {
+    --color-bg: #f7eccc;
+    --color-blue: #2b86c0;
+    --color-darkblue: #2f5fb0;
+    --color-text: #333;
+    --radius: 12px;
+    --shadow: 0 8px 16px rgba(0,0,0,0.1);
+    --sidebar-width: 240px;
+}
+
+/* === RESETEO GENERAL === */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--color-bg);
+    font-family: 'Nunito', sans-serif;
+    color: var(--color-text);
+    min-height: 100vh;
+}
+
+/* === CONTENEDOR PRINCIPAL === */
+.app {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+    background: #fff;
+    width: var(--sidebar-width);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+}
+
+.logo-box {
+    background: var(--color-blue);
+    border-radius: var(--radius);
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.logo-box h2 {
+    font-family: 'Fredoka One', cursive;
+    color: #fff;
+    font-size: 35px;
+}
+
+.menu ul {
+    list-style: none;
+}
+
+.menu li {
+    padding: 8px 0;
+    border-bottom: 2px solid #b7d9f3;
+}
+
+.menu a {
+    text-decoration: none;
+    color: var(--color-darkblue);
+    font-weight: 700;
+    font-size: 14px;
+    display: block;
+    padding: 5px;
+    border-radius: var(--radius);
+    transition: all 0.3s;
+}
+
+.menu a:hover {
+    background: var(--color-blue);
+    color: #fff;
+}
+
+.menu a.active {
+    color: var(--color-blue);
+    font-weight: 800;
+}
+
+/* === CONTENIDO PRINCIPAL === */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === ENCABEZADO === */
+.topbar {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.header-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.header-right {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.icon-logo {
+    width: 70px;
+    height: 70px;
+    border: 3px solid var(--color-blue);
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.topbar h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 32px;
+    color: var(--color-darkblue);
+}
+
+.display-only {
+    cursor: default;
+    background: #fff;
+    border: 2px solid #b7d9f3;
+    border-radius: 20px;
+    padding: 12px 40px;
+    width: 100%;
+    max-width: calc(100% - 80px);
+    font-size: 16px;
+    color: var(--color-darkblue);
+    text-align: left;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+
+/* === ÁREA DE CONTENIDO === */
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+    margin-bottom: 40px;
+    padding: 20px;
+    gap: 0px;
+    width: 100%;
+}
+
+/* === CONTENEDOR EDITAR PEDIDO === */
+.editar-pedido-container {
+    background: #fff;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: var(--shadow);
+    margin-top: 30px;
+    width: 100%;
+}
+
+/* Títulos */
+.editar-pedido-container h2 {
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Labels */
+.editar-pedido-container label {
+    font-weight: 600;
+    color: #34495e;
+}
+
+/* Inputs y selects */
+.editar-pedido-container input,
+.editar-pedido-container select {
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    font-size: 15px;
+    width: 100%;
+}
+
+/* === TABLA DE PRENDAS === */
+#tabla-editar-prendas {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#tabla-editar-prendas th,
+#tabla-editar-prendas td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#tabla-editar-prendas th {
+    background-color: #eaf4fc;
+    color: var(--color-blue);
+    font-weight: 600;
+}
+
+#tabla-editar-prendas input[type="number"],
+#tabla-editar-prendas input[type="text"] {
+    width: 90%;
+    margin: auto;
+}
+
+/* Última fila + agregar prenda */
+.ultima-fila td {
+    background-color: #ecf0f1;
+    text-align: center;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* La celda de "Agregar Prenda" ocupa todo el ancho */
+.ultima-fila td[colspan] {
+    width: 100%;
+}
+
+/* Hover solo en agregar prenda */
+.ultima-fila td:hover {
+    background-color: var(--color-blue-light);
+    color: #fff;
+}
+
+/* Botones de fila */
+.agregar-fila {
+    background-color: #2ecc71;
+    color: rgb(255, 255, 255);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.agregar-fila:hover { background-color: var(--color-blue-light); }
+
+/* Botón eliminar */
+.btn-danger {
+    background-color: #e74c3c !important;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: white;
+    font-weight: bold;
+}
+
+.btn-danger:hover { background-color: #c0392b !important; }
+
+/* Botón principal Guardar */
+.btn-guardar {
+    background-color: var(--color-blue);
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 10px 25px;
+    display: block;
+    transition: 0.3s ease-in-out;
+}
+
+.btn-guardar:hover { background-color: var(--color-darkblue); }
+
+/* Botón Cancelar */
+.btn-cancel {
+    background-color: #95a5a6;
+    color: white;
+    border: none;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 10px 25px;
+    display: block;
+    text-align: center;
+    transition: 0.3s ease;
+}
+
+.btn-cancel:hover { background-color: #7f8c8d; }
+
+/* Flex botones guardar y cancelar */
+#form-editar-pedido .form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 50px;
+}
+
+#form-editar-pedido .form-actions .btn-guardar,
+#form-editar-pedido .form-actions .btn-cancel {
+    flex: 1;
+    max-width: 180px;
+    margin: 0;
+    display: block;
+    text-align: center;
+}
+
+/* === AUTOCOMPLETADO SUGERENCIAS === */
+.input-nombre-sugerencia { position: relative; }
+.sugerencias-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 250px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: none;
+    z-index: 1000;
+}
+
+.sugerencias-list div {
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.sugerencias-list div:hover {
+    background-color: var(--color-blue);
+    color: #fff;
+}
+
+/* Scroll personalizado */
+.sugerencias-list::-webkit-scrollbar { width: 6px; }
+.sugerencias-list::-webkit-scrollbar-thumb { background-color: var(--color-blue); border-radius: 3px; }
+.sugerencias-list::-webkit-scrollbar-track { background: #f1f1f1; }
+
+
+.no-coincidencias {
+    padding: 5px;
+    font-size: 14px;
+    color: #555;
+    text-align: left;
+}

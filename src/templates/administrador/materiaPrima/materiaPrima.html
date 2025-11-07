@@ -33,6 +33,7 @@
                     <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
                     <li><a href="{{ url_for('estatus') }}">Estatus de Pedido</a></li>
                     <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                    <li><a href="{{ url_for('unidadesMedidas') }}">Unidades de Medida</a></li>
                     <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
                 </ul>
             </nav>
@@ -77,6 +78,7 @@
                             <thead>
                                 <tr>
                                     <th>Nombre</th>
+                                    <th>Unidad Medida</th>
                                     <th>Cantidad</th>
                                     <th>Acción</th>
                                 </tr>
@@ -85,6 +87,7 @@
                                 {% for materia in materias %}
                                 <tr>
                                     <td>{{ materia.NOMBREMATERIAPRIMA }}</td>
+                                    <td>{{ materia.CANTIDADUM|int}} {{ materia.UNIDAD }}</td>
                                     <td>{{ materia.CANTIDAD}}</td>
                                     <td>
                                         <button class="btn-edit" onclick="window.location.href='{{ url_for('editar_materia', idmateriaprima=materia.IDMATERIAPRIMA) }}'">✏️</button>
@@ -102,8 +105,19 @@
                         <form class="new-form" method="POST" action="{{ url_for('materiaPrima')}}">
                             <label for="nombre">Nombre:</label>
                             <input type="text" id="nombre" name="nombre" placeholder="Nombre de la materia prima">
+
+                            <label for="cantidadum">Cantidad de la unidad:</label>
+                            <input type="text" id="cantidadum" name="cantidadum" placeholder="Ej: 600 ml, 500 gr, 1 Lt" required>
+
+
                             <label for="unidad">Unidad de medida:</label>
-                            <input type="text" id="unidad" name="unidad" placeholder="Defina la unidad de medida">
+                            <select name="unidad" id="unidad" required>
+                                <option value="">Seleccione una unidad</option>
+                                {% for unidad in unidadess %}
+                                    <option value="{{unidad.IDUNIDAD}}">{{unidad.NOMBRE}}</option>
+                                {% endfor %}
+                            </select>
+
                             <label for="stock">Stock mínimo:</label>
                             <input type="text" id="stock" name="stock" placeholder="Defina el stock mínimo">
                             <button type="submit" class="btn-save">Guardar</button>

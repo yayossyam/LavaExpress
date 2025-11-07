@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Pedido</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/editarPedido.css') }}">
+</head>
+<body>
+<div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo-box"><h2>LavaSoft</h2></div>
+        <nav class="menu">
+            <ul>
+                <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
+                <li><a href="{{ url_for('pedidos') }}" class="active">Pedidos</a></li>
+                <li><a href="{{ url_for('cambioEstadoPedido') }}">Cambiar Estado de Pedido</a></li>
+                <li><a href="{{ url_for('proveedores') }}">Proveedores</a></li>
+                <li><a href="{{ url_for('compraMateriaPrima') }}">Compra Materia Prima</a></li>
+                <li><a href="{{ url_for('catalogoProductos') }}">Catálogo Productos</a></li>
+                <li><a href="{{ url_for('categoriaPrendas') }}">Categoría de Prendas</a></li>
+                <li><a href="{{ url_for('catalogoPrendas') }}">Catálogo de Prendas</a></li>
+                <li><a href="{{ url_for('cargas') }}">Cargas</a></li>
+                <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
+                <li><a href="{{ url_for('roles') }}">Rol</a></li>
+                <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
+                <li><a href="{{ url_for('estatus') }}">Estatus de Pedido</a></li>
+                <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                <li><a href="{{ url_for('unidadesMedidas') }}">Unidades de Medida</a></li>
+                <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="main">
+        <!-- ENCABEZADO -->
+        <header class="topbar">
+            <div class="header-center">
+                <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
+                <h1>LavaExpress</h1>
+            </div>
+            <div class="header-right">
+                <div class="display-only">Editar Pedido</div>
+            </div>
+        </header>
+
+        <!-- CUERPO PRINCIPAL -->
+        <main class="content">
+            <div class="editar-pedido-container">
+                <h2>Editar Pedido #{{ pedido.IDPEDIDO }}</h2>
+                <form id="form-editar-pedido" data-id="{{ pedido.IDPEDIDO }}">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="cliente">Cliente</label>
+                            <select id="cliente" class="form-select">
+                                {% for user in clientes %}
+                                    <option value="{{ user.IDUSER }}" {% if user.IDUSER == pedido.IDUSER %}selected{% endif %}>
+                                        {{ user.NOMBRE_COMPLETO }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="servicio">Servicio</label>
+                            <select id="servicio" class="form-select">
+                                {% for s in servicios %}
+                                    <option value="{{ s.IDSERVICIO }}" data-costo-kg="{{ s.COSTO_KG }}" {% if s.IDSERVICIO == pedido.IDSERVICIO %}selected{% endif %}>
+                                        {{ s.NOMSERVICIO }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="fecha_entrega">Fecha de Entrega</label>
+                            <input type="date" id="fecha_entrega" class="form-control" value="{{ pedido.FECHAENTREGA }}">
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered" id="tabla-editar-prendas">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Prenda</th>
+                                <th>Cantidad</th>
+                                <th>Peso Total (kg)</th>
+                                <th>Eliminar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prenda in prendas %}
+                            <tr class="existing-fila">
+                                <td class="input-nombre-sugerencia">
+                                    <input type="text" class="form-control input-nombre" value="{{ prenda.NOMBREPRENDA }}" data-id="{{ prenda.IDCATALOGO }}" readonly>
+                                    <div class="sugerencias-list"></div>
+                                </td>
+                                <td><input type="number" class="form-control input-cantidad" value="{{ prenda.CANTIDAD }}" min="1" readonly></td>
+                                <td><input type="number" class="form-control input-peso" value="{{ prenda.PESO }}" step="any" min="0" readonly></td>
+                                <td><button type="button" class="btn btn-danger btn-sm eliminar-fila">➖</button></td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="ultima-fila">
+                                <td colspan="4" class="text-center fw-bold agregar-fila">+ Agregar Prenda</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success btn-guardar">Guardar Cambios</button>
+                        <a href="{{ url_for('pedidos') }}" class="btn btn-cancel">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ url_for('static', filename='js/administrador/editarPedido.js') }}"></script>
+</body>
+</html>

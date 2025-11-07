@@ -166,26 +166,6 @@ body {
     width: 100%;
 }
 
-
-
-/* === ÁREA DE CONTENIDO === */
-.content {
-    display: flex;
-    flex-direction: column; /* disposición vertical */
-    justify-content: space-between;
-    padding: 20px;
-    gap: 20px;
-    height: calc(100vh - 200px); /* ajusta según header */
-}
-
-/* CONTENEDOR HORIZONTAL DE BLOQUES */
-.materia-container {
-    display: flex;
-    flex-direction: row;  /* los dos bloques lado a lado */
-    gap: 20px;
-    flex: 1;
-}
-
 /* BLOQUES INDIVIDUALES */
 .existing, .new {
     background: #fff;
@@ -215,9 +195,8 @@ table {
 th, td {
     padding: 10px;
     border-bottom: 1px solid #ccc;
-    text-align: left;
-    color: var(--color-text, #333);
     text-align: center;
+    color: var(--color-text, #333);
 }
 
 th {
@@ -274,9 +253,9 @@ th {
 /* === BOTÓN REGRESAR === */
 .back-container {
     display: flex;
-    justify-content: center;  /* centra el botón */
+    justify-content: center;
     align-items: center;
-    flex-direction: column;   /* asegura disposición vertical */
+    flex-direction: column;
     padding-top: 10px;
 }
 
@@ -293,7 +272,6 @@ th {
 .btn-back:hover {
     background-color: #b7b7b7;
 }
-
 
 /* === MODAL MODERNO Y ELEGANTE === */
 .modal {
@@ -345,7 +323,6 @@ th {
     gap: 15px;
 }
 
-/* Botones del modal */
 .btn-confirm {
     background: var(--color-blue);
     color: #fff;
@@ -380,20 +357,18 @@ th {
     transform: translateY(-2px) scale(1.05);
 }
 
-/* Animación */
 @keyframes modalZoomIn {
     0% { transform: scale(0.8); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
 }
 
-
-/* === TARJETÓN DE EDICIÓN MODERNO Y MÁS ANCHO === */
+/* === TARJETÓN DE EDICIÓN MODERNO === */
 .edit-card {
     background: #fff;
     padding: 35px 50px;
     border-radius: var(--radius);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-    max-width: 700px; /* antes 500px */
+    max-width: 700px;
     width: 90%;
     margin: 0 auto;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -482,4 +457,63 @@ th {
     border-color: #ccc;
     color: #666;
     cursor: not-allowed;
+}
+
+/* === SELECT CON MISMO ESTILO QUE INPUT === */
+.new-form select,
+.edit-card select {
+    padding: 12px;
+    border-radius: 10px;
+    border: 2px solid #b7d9f3;
+    outline: none;
+    background-color: #fff;
+    color: var(--color-text, #333);
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    width: 100%;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%232b86c0' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+    padding-right: 40px;
+}
+
+.new-form select:focus,
+.edit-card select:focus {
+    border-color: var(--color-blue);
+    box-shadow: 0 0 8px rgba(43, 134, 192, 0.3);
+}
+
+.new-form select:disabled,
+.edit-card select:disabled {
+    background: #f1f1f1;
+    border-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* === TABLA EXISTENTE MATERIA PRIMA: THEAD PROPORCIONES === */
+.existing table thead th:nth-child(1) {
+    width: 35%; /* Nombre */
+    text-align: left;
+    padding-left: 15px;
+}
+
+.existing table thead th:nth-child(2) {
+    width: 20%; /* Unidad Medida */
+}
+
+.existing table thead th:nth-child(3) {
+    width: 20%; /* Cantidad */
+}
+
+.existing table thead th:nth-child(4) {
+    width: 25%; /* Acción */
+    white-space: nowrap;
+    text-align: center;
 }

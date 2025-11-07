@@ -34,6 +34,7 @@
                     <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
                     <li><a href="{{ url_for('estatus') }}">Estatus de Pedido</a></li>
                     <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                    <li><a href="{{ url_for('unidadesMedidas') }}">Unidades de Medida</a></li>
                     <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
                 </ul>
             </nav>
@@ -68,6 +69,23 @@
                         <!-- NUEVO NOMBRE-->
                         <label for="nombre">Nuevo nombre:</label>
                         <input type="text" name="nombre" id="nombre" placeholder="Ingrese el nuevo nombre" required>
+
+                        <!-- MOSTRAR KG MÁXIMO ACTUAL -->
+                        <label for="kgmaximo_actual">Actual KG máximo por carga:</label>
+                        <input type="number" id="kgmaximo_actual" name="kgmaximo_actual" value="{{ categoria.KGMAXIMO }}" readonly>
+
+                        <!-- NUEVO KG MÁXIMO -->
+                        <label for="kgmaximo">Nuevo KG máximo por carga:</label>
+                        <input type="number" step="0.01" min="0" name="kgmaximo" id="kgmaximo" value="{{ categoria.KGMAXIMO }}" required>
+
+                        <!-- MOSTRAR PRECIO KG ACTUAL -->
+                        <label for="preciokg_actual">Precio por KG actual:</label>
+                        <input type="number" id="preciokg_actual" name="preciokg_actual" value="{{ categoria.PRECIOKG }}" readonly>
+
+                        <!-- NUEVO PRECIO KG -->
+                        <label for="preciokg">Nuevo precio por KG:</label>
+                        <input type="number" step="0.01" min="0" name="preciokg" id="preciokg" value="{{ categoria.PRECIOKG }}" required>
+
 
                         <!-- BOTON DE ACTUALIZACIÓN -->
                         <button type="submit" class="btn btn-primary">Actualizar</button>

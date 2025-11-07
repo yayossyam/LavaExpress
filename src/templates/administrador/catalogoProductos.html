@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo Productos</title>
+    <title>Catálogo de Productos</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/catalogoProductos.css') }}">
@@ -32,6 +32,7 @@
                     <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
                     <li><a href="{{ url_for('estatus') }}">Estatus de Pedido</a></li>
                     <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                    <li><a href="{{ url_for('unidadesMedidas') }}">Unidades de Medida</a></li>
                     <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
                 </ul>
             </nav>
@@ -53,36 +54,46 @@
 
             <!-- CUERPO PRINCIPAL -->
             <main class="content">
-
-                <div class="block catalogo-productos">
-                    <h2>Catálogo Productos</h2>
+                <div class="catalogo-productos">
+                    <h2>Listado de Productos por Categoría</h2>
                     <table class="table-catalogo">
                         <thead>
                             <tr>
-                                <th>Clave</th>
-                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Nombre del Producto</th>
                                 <th>Existencia</th>
                                 <th>Unidad</th>
-                                <th>Por carga</th>
+                                <th>Por Carga</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for producto in productos %}
-                            <tr>
-                                <td>{{ producto.clave }}</td>
-                                <td>{{ producto.nombre }}</td>
-                                <td>{{ producto.existencia }}</td>
-                                <td>{{ producto.unidad }}</td>
-                                <td>{{ producto.por_carga }}</td>
-                            </tr>
+                            {% set categorias = productos | groupby('categoria') %}
+                            {% for categoria, items in categorias %}
+                                {% for item in items %}
+                                    <tr>
+                                        {% if loop.first %}
+                                            <td rowspan="{{ items|length }}" style="font-weight:bold; color:var(--color-darkblue); vertical-align: middle;">
+                                                {{ categoria }}
+                                            </td>
+                                        {% endif %}
+                                        <td>{{ item.nombre }}</td>
+                                        <td>{{ item.existencia }}</td>
+                                        <td>{{ item.unidad }}</td>
+                                        <td>{{ item.por_carga }}</td>
+                                    </tr>
+                                {% endfor %}
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
 
+                <div class="back-container">
+                    <button class="btn-back" onclick="window.history.back()">Regresar</button>
+                </div>
             </main>
-
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

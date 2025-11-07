@@ -35,6 +35,7 @@
                     <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
                     <li><a href="{{ url_for('estatus') }}">Estatus de Pedido</a></li>
                     <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                    <li><a href="{{ url_for('unidadesMedidas') }}">Unidades de Medida</a></li>
                     <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
                 </ul>
             </nav>
@@ -82,12 +83,16 @@
 
                         <!-- Mostrar Unidad de Medida Actual-->
                         <label for="unidad_actual">Unidad de medida actual:</label>
-                        <input type="text" id="unidad_actual" value="{{ materia.UNIDADMEDIDA }}" readonly>
+                        <input type="text" id="unidad_actual" value="{{ materia.NOMBRE }}" readonly>
 
                         <!-- Nueva Unidad de Medida -->
                         <label for="unidad">Nueva Unidad de Medida:</label>
-                        <input type="text" name="unidad" id="unidad" placeholder="Ingrese la nueva unidad de medida" required>
-
+                        <select name="unidad" id="unidad" required>
+                            <option value="">Seleccione una opción</option>
+                            {% for unidad in unidades %}
+                                <option value="{{unidad.IDUNIDAD}}">{{unidad.NOMBRE}}</option>
+                            {% endfor %}
+                        </select>
 
                         <!-- Mostrar Stock Minimo Actual-->
                         <label for="stock_actual">Stock mínimo actual:</label>
@@ -96,6 +101,14 @@
                         <!-- Nuevo Stock -->
                         <label for="stock">Nuevo Stock Mínimo:</label>
                         <input type="text" name="stock" id="stock" placeholder="Ingrese el nuevo stock mínimo" required>
+
+                        <!-- Mostrar Cantidad Unidad Medida Actual-->
+                        <label for="cantidadum_actual">Cantidad de la unidad de medida actual:</label>
+                        <input type="text" id="cantidadum_actual" value="{{ materia.CANTIDADUM }}" readonly>
+
+                        <!-- Nuevo Cantidad Unidad Medida -->
+                        <label for="cantidadum">Nueva Cantidad de la unidad de medida:</label>
+                        <input type="text" name="cantidadum" id="cantidadum" placeholder="Ingrese el nuevo valor" required>
 
 
 

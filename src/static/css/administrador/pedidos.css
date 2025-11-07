@@ -148,7 +148,6 @@ body {
     font-weight: 600;
 }
 
-
 /* === ÁREA DE CONTENIDO === */
 .content {
     display: flex;
@@ -161,33 +160,15 @@ body {
     width: 100%;
 }
 
-/* Letrero Pedidos / Usuarios */
-.display-only {
-    cursor: default;
-    background: #fff;
-    border: 2px solid #b7d9f3;
-    border-radius: 20px;
-    padding: 12px 40px;
-    font-size: 16px;
-    color: var(--color-darkblue);
-    text-align: left;
-    user-select: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    font-weight: 600;
-    margin-bottom: 0;
-}
-
 /* BOTÓN NUEVO PEDIDO */
 .pedido-actions {
-    display: flex;           /* activa flexbox en el contenedor */
-    justify-content: flex-end;  /* alinea el botón a la izquierda */
-    width: 100%;             /* ocupa todo el ancho disponible */
-    margin-bottom: 3px;      /* espacio antes de la tabla */
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
     margin: 0;
     padding: 0;
 }
 
-/* BOTÓN NUEVO PEDIDO */
 .btn-new {
     background-color: var(--color-blue);
     color: white;
@@ -197,8 +178,6 @@ body {
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s;
-    margin: 0px;  /* lo deja justo debajo del letrero */
-    margin-bottom: 3px; /* mantiene el espacio antes de la tabla */
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -224,7 +203,6 @@ body {
     z-index: 1;
 }
 
-/* TITULO */
 .usuarios-container h2 {
     font-family: 'Fredoka One', cursive;
     font-size: 1.6rem;
@@ -263,23 +241,209 @@ th {
     font-size: 1.2rem;
 }
 
-.btn-edit:hover {
-    color: var(--color-blue);
-}
-
-.btn-delete:hover {
-    color: red;
-}
+.btn-edit:hover { color: var(--color-blue); }
+.btn-delete:hover { color: red; }
 
 /* === RESPONSIVE === */
 @media (max-width: 900px) {
-    .decor {
-        display: none;
-    }
+    .decor { display: none; }
+    .pedido-actions, .usuarios-container { width: 95%; max-width: 95%; }
+}
 
-    .pedido-actions,
-    .usuarios-container {
-        width: 95%;
-        max-width: 95%;
-    }
+/* === MODAL DETALLES (CUADRO MÁS ANCHO Y REDONDEADO) === */
+.modal-resumen {
+    display: none; 
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+    backdrop-filter: blur(3px);
+    overflow: hidden; /* bloquea scroll del fondo */
+}
+
+.modal-resumen.open {
+    display: flex;
+}
+
+.modal-resumen .modal-content {
+    background: #fff;
+    padding: 25px;
+    border-radius: 25px; /* redondeadas completamente */
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    width: 95%;
+    max-width: 700px;   /* más ancho */
+    max-height: 70vh;   /* altura tipo cuadro */
+    overflow-y: auto;   /* scroll solo dentro del modal */
+    overflow-x: hidden;
+    font-family: 'Nunito', sans-serif;
+    text-align: center;
+    transform: scale(0.8);
+    opacity: 0;
+    animation: modalZoomIn 0.35s forwards;
+}
+
+.modal-resumen .modal-content h3 {
+    font-size: 24px;
+    color: var(--color-blue);
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.modal-resumen .modal-content .pedido-info {
+    text-align: left;
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: var(--color-darkblue);
+}
+
+.modal-resumen .modal-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.modal-resumen .modal-content table th,
+.modal-resumen .modal-content table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    font-size: 13px;
+}
+
+.modal-resumen .modal-content table th {
+    background-color: var(--color-blue);
+    color: white;
+    font-weight: 600;
+}
+
+.modal-resumen .modal-content .totales {
+    margin-top: 10px;
+    text-align: right;
+    font-weight: 700;
+    color: var(--color-darkblue);
+    font-size: 14px;
+}
+
+.modal-resumen .modal-content .btn-cerrar {
+    margin-top: 15px;
+    background: var(--color-blue);
+    color: #fff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s;
+}
+
+.modal-resumen .modal-content .btn-cerrar:hover {
+    background: var(--color-darkblue);
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* === MODAL ELIMINAR PEDIDO === */
+.modal {
+    display: none; 
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+    backdrop-filter: blur(3px);
+}
+
+.modal .modal-content {
+    background: #ffffff;
+    padding: 35px 30px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    max-width: 420px;
+    width: 90%;
+    font-family: 'Nunito', sans-serif;
+    transform: scale(0.8);
+    opacity: 0;
+    animation: modalZoomIn 0.35s forwards;
+}
+
+.modal .modal-content h3 {
+    font-size: 24px;
+    color: var(--color-blue);
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.modal .modal-content p {
+    font-size: 17px;
+    color: var(--color-darkblue);
+    margin-bottom: 25px;
+}
+
+.modal .modal-content .buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.modal .btn-confirm {
+    background: var(--color-blue);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modal .btn-confirm:hover {
+    background: var(--color-darkblue);
+    transform: translateY(-2px) scale(1.05);
+}
+
+.modal .btn-cancel {
+    background: #f0f0f0;
+    color: #555;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modal .btn-cancel:hover {
+    background: #e0e0e0;
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* === ANIMACIÓN === */
+@keyframes modalZoomIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.btn-detalles {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0;
+    outline: none; /* quita el borde negro al hacer foco */
+}
+
+.btn-detalles:focus {
+    outline: none; /* elimina el foco al usar teclado/tab */
+    box-shadow: none; /* elimina sombra de foco si existe */
+}
+
+.btn-detalles:hover {
+    color: var(--color-blue);
 }

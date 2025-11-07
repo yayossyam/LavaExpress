@@ -9,7 +9,7 @@
     --sidebar-width: 240px;
 }
 
-/* === RESETEO GENERAL === */
+/* === ESTILO GENERAL === */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -60,6 +60,7 @@ body {
 .menu li {
     padding: 8px 0;
     border-bottom: 2px solid #b7d9f3;
+    transition: background 0.3s;
 }
 
 .menu a {
@@ -73,6 +74,7 @@ body {
     transition: all 0.3s;
 }
 
+/* HOVER Y ACTIVE DEL MENÚ */
 .menu a:hover {
     background: var(--color-blue);
     color: #fff;
@@ -96,7 +98,7 @@ body {
     display: flex;
     align-items: center;
     flex-direction: column;
-    margin-bottom: 15px;
+    margin-bottom: 25px;
 }
 
 .header-center {
@@ -104,14 +106,16 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
 .header-right {
     display: flex;
     justify-content: center;
+    align-items: center;
     width: 100%;
     padding: 0 20px;
+    box-sizing: border-box;
 }
 
 .icon-logo {
@@ -126,8 +130,10 @@ body {
     font-family: 'Fredoka One', cursive;
     font-size: 32px;
     color: var(--color-darkblue);
+    margin: 0;
 }
 
+/* Barra de "letrero" */
 .display-only {
     cursor: default;
     background: #fff;
@@ -139,164 +145,141 @@ body {
     font-size: 16px;
     color: var(--color-darkblue);
     text-align: left;
-    font-weight: 600;
+    user-select: none;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    font-weight: 600;
 }
 
-/* === CONTENIDO === */
+/* === ÁREA DE CONTENIDO === */
 .content {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* columna principal para que el botón quede debajo */
     gap: 20px;
     padding: 20px;
+    height: calc(100vh - 200px); /* ajusta según tamaño del header */
 }
 
-/* === BLOQUES PRINCIPALES === */
-.block {
-    background: #fff;
-    box-shadow: var(--shadow);
-    border-radius: var(--radius);
-    padding: 0;
-    margin-bottom: 20px;
-}
-
-/* === TITULOS DE BLOQUES === */
-.compra-general h2,
-.compra-detalle h2 {
-    background-color: var(--color-blue);
-    color: #fff;
-    padding: 10px 0;
-    border-radius: 12px 12px 0 0;
-    text-align: center;
-    margin: 0;
-}
-
-/* === NUEVA PRENDA === */
-.compra-general .form-row {
-    display: grid;
-    grid-template-columns: 1.5fr 1.5fr 1fr; /* Nombre + Categoría + Empleado */
-    gap: 20px;
-    padding: 20px;
-    background-color: #f0f8ff;
-    border-radius: 0 0 12px 12px;
-    align-items: end;
-}
-
-.compra-general .form-row .field-group {
-    display: flex;
-    flex-direction: column;
-}
-
-/* Etiquetas */
-.compra-general .form-row label {
-    font-weight: 600;
-    color: var(--color-blue);
-    margin-bottom: 5px;
-}
-
-/* Campos generales */
-.compra-general .form-row input,
-.compra-general .form-row select {
-    padding: 8px;
-    border-radius: 8px;
-    border: 2px solid var(--color-blue);
-    outline: none;
-    transition: all 0.2s ease;
+/* Contenedor horizontal de los dos bloques */
+.materia-container {
+    display: flex;            /* bloques lado a lado */
+    gap: 20px;                /* espacio entre bloques */
     width: 100%;
 }
 
-/* Diferenciar tamaños ligeramente */
-.compra-general .form-row input,
-.compra-general .form-row select {
-    max-width: 100%;
-}
 
-/* Efecto al enfocar */
-.compra-general .form-row input:focus,
-.compra-general .form-row select:focus {
-    box-shadow: 0 0 5px rgba(43, 134, 192, 0.5);
-}
 
-/* === BOTÓN GUARDAR === */
-.btn-row {
+/* === ÁREA DE CONTENIDO === */
+.content {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 15px 0;
+    flex-direction: column; /* disposición vertical */
+    justify-content: space-between;
+    padding: 20px;
+    gap: 20px;
+    height: calc(100vh - 200px); /* ajusta según header */
 }
 
-.btn-save {
-    background-color: var(--color-blue);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s;
+/* CONTENEDOR HORIZONTAL DE BLOQUES */
+.materia-container {
+    display: flex;
+    flex-direction: row;  /* los dos bloques lado a lado */
+    gap: 20px;
+    flex: 1;
 }
 
-.btn-save:hover {
-    background-color: var(--color-darkblue);
-}
-
-/* === CATÁLOGO DE PRENDAS === */
-.compra-detalle {
-    padding: 0;
-    background-color: #f0f8ff;
+/* BLOQUES INDIVIDUALES */
+.existing, .new {
+    background: #fff;
+    box-shadow: var(--shadow, 0 4px 10px rgba(0,0,0,0.1));
     border-radius: 12px;
+    padding: 20px;
+    flex: 1;
 }
 
-/* === TABLA === */
-.table-compra {
+.existing h2, .new h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    color: var(--color-blue, #2b86c0);
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* TABLA */
+table {
     width: 100%;
     border-collapse: collapse;
-    border: 2px solid var(--color-blue);
+    border: 2px solid var(--color-blue, #2b86c0);
     border-radius: 8px;
     overflow: hidden;
-    margin-top: 10px;
 }
 
-.table-compra th,
-.table-compra td {
+th, td {
     padding: 10px;
-    text-align: center;
     border-bottom: 1px solid #ccc;
-    color: var(--color-text);
+    text-align: left;
+    color: var(--color-text, #333);
+    text-align: center;
 }
 
-.table-compra th {
+th {
     background-color: #eaf4fc;
-    color: var(--color-blue);
+    color: var(--color-blue, #2b86c0);
     font-weight: 700;
 }
 
-.action-btn {
-    background: none;
+.btn-edit, .btn-delete {
     border: none;
+    background: none;
     cursor: pointer;
-    font-size: 18px;
-    margin: 0 5px;
-    transition: color 0.3s;
+    font-size: 1.2rem;
 }
 
-.action-btn.edit {
-    color: var(--color-blue);
+/* FORMULARIO NUEVA MATERIA */
+.new-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.action-btn.edit:hover {
-    color: var(--color-darkblue);
+.new-form label {
+    color: var(--color-blue, #2b86c0);
+    font-weight: 600;
 }
 
-.action-btn.delete {
-    color: #d9534f;
+.new-form input {
+    padding: 8px;
+    border-radius: 8px;
+    border: 2px solid var(--color-blue, #2b86c0);
+    outline: none;
+    transition: all 0.2s ease;
 }
 
-.action-btn.delete:hover {
-    color: #b52b27;
+.new-form input:focus {
+    box-shadow: 0 0 5px rgba(43, 134, 192, 0.5);
+}
+
+.btn-save {
+    background-color: var(--color-blue, #2b86c0);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-save:hover {
+    background-color: var(--color-darkblue, #2f5fb0);
 }
 
 /* === BOTÓN REGRESAR === */
+.back-container {
+    display: flex;
+    justify-content: center;  /* centra el botón */
+    align-items: center;
+    flex-direction: column;   /* asegura disposición vertical */
+    padding-top: 10px;
+}
+
 .btn-back {
     background-color: #ccc;
     color: #333;
@@ -305,9 +288,6 @@ body {
     border: none;
     cursor: pointer;
     font-weight: 600;
-    transition: all 0.3s;
-    margin: 15px auto;
-    display: block;
 }
 
 .btn-back:hover {
@@ -315,90 +295,13 @@ body {
 }
 
 
-/* === CARD DE EDICIÓN MODERNA === */
-.edit-card {
-    background: #fff;
-    padding: 30px 25px;
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-    max-width: 500px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.edit-card label {
-    font-weight: 600;
-    color: var(--color-blue);
-    margin-bottom: 5px;
-}
-
-.edit-card input,
-.edit-card select {
-    padding: 10px;
-    border-radius: 12px;
-    border: 2px solid var(--color-blue);
-    outline: none;
-    font-size: 14px;
-    transition: all 0.2s ease;
-}
-
-.edit-card input:focus,
-.edit-card select:focus {
-    box-shadow: 0 0 10px rgba(43,134,192,0.3);
-}
-
-/* Botones dentro de la card de edición */
-.edit-card .buttons {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-}
-
-.edit-card .btn-cancel {
-    background: #f0f0f0;
-    color: #555;
-    border: none;
-    padding: 12px 28px;
-    border-radius: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-}
-
-.edit-card .btn-cancel:hover {
-    background: #e0e0e0;
-    transform: translateY(-2px) scale(1.05);
-}
-
-.edit-card .btn-primary {
-    background: var(--color-blue);
-    color: #fff;
-    border: none;
-    padding: 12px 28px;
-    border-radius: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 6px 15px rgba(43,134,192,0.3);
-}
-
-.edit-card .btn-primary:hover {
-    background: var(--color-darkblue);
-    transform: translateY(-2px) scale(1.05);
-}
-
 /* === MODAL MODERNO Y ELEGANTE === */
 .modal {
     display: none;
     position: fixed;
-    top: 0; 
-    left: 0;
-    width: 100%; 
-    height: 100%;
-    background: rgba(0,0,0,0.45);
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.45);
     justify-content: center;
     align-items: center;
     z-index: 1000;
@@ -442,6 +345,7 @@ body {
     gap: 15px;
 }
 
+/* Botones del modal */
 .btn-confirm {
     background: var(--color-blue);
     color: #fff;
@@ -476,10 +380,12 @@ body {
     transform: translateY(-2px) scale(1.05);
 }
 
+/* Animación */
 @keyframes modalZoomIn {
     0% { transform: scale(0.8); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
 }
+
 
 /* === TARJETÓN DE EDICIÓN MODERNO Y MÁS ANCHO === */
 .edit-card {
@@ -572,6 +478,51 @@ body {
 }
 
 .edit-card input[readonly] {
+    background: #f1f1f1;
+    border-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* === SELECT con mismo estilo que INPUT === */
+.new-form select,
+.edit-card select {
+    /* Hereda el mismo look que los inputs */
+    padding: 12px;
+    border-radius: 10px;
+    border: 2px solid #b7d9f3;
+    outline: none;
+    background-color: #fff;
+    color: var(--color-text, #333);
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    width: 100%; /* igual que los inputs */
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    /* Elimina estilos por defecto del navegador */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    /* Flecha SVG azul igual al estilo de tus inputs */
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%232b86c0' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+    padding-right: 40px; /* deja espacio para la flecha */
+}
+
+/* Efecto de enfoque (igual que los inputs) */
+.new-form select:focus,
+.edit-card select:focus {
+    border-color: var(--color-blue);
+    box-shadow: 0 0 8px rgba(43, 134, 192, 0.3);
+}
+
+/* Estado deshabilitado (igual que inputs) */
+.new-form select:disabled,
+.edit-card select:disabled {
     background: #f1f1f1;
     border-color: #ccc;
     color: #666;

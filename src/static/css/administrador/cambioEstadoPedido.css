@@ -289,3 +289,71 @@ body {
 .btn-back:hover {
     background-color: #b7b7b7;
 }
+
+
+/* === MODAL DE CONFIRMACIÓN === */
+.modal-content {
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 2px solid #b7d9f3;
+    background-color: #fffaf1;
+}
+
+.modal-header {
+    background-color: var(--color-blue);
+    color: #fff;
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
+    font-family: 'Fredoka One', cursive;
+}
+
+.modal-title {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.modal-body {
+    background-color: #fff;
+    color: var(--color-text);
+    font-size: 15px;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.modal-body strong {
+    color: var(--color-darkblue);
+}
+
+.modal-footer {
+    background-color: #f5faff;
+    border-top: 1px solid #b7d9f3;
+    border-bottom-left-radius: var(--radius);
+    border-bottom-right-radius: var(--radius);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.modal-footer .btn-primary {
+    background-color: var(--color-blue);
+    border: none;
+    font-weight: 600;
+    border-radius: var(--radius);
+    transition: background 0.3s ease;
+}
+
+.modal-footer .btn-primary:hover {
+    background-color: var(--color-darkblue);
+}
+
+.modal-footer .btn-secondary {
+    background-color: #ccc;
+    color: #333;
+    font-weight: 600;
+    border-radius: var(--radius);
+    border: none;
+}
+
+.modal-footer .btn-secondary:hover {
+    background-color: #b7b7b7;
+}
