@@ -5,6 +5,7 @@ from config import DB_CONFIG, SECRET_KEY
 from bcrypt import checkpw
 from datetime import date
 import json
+from math import ceil
 
 app = Flask(__name__) #Se inicializa la aplicación en la variable llamada "app" y recibirá la instancia de Flask
 app.secret_key = SECRET_KEY
@@ -589,54 +590,150 @@ def buscar_prenda():
 
 @app.route('/cambioEstadoPedido', methods=['GET', 'POST'])
 def cambioEstadoPedido():
-    cur = mysql.connection.cursor()  # cursor normal
+    cur = mysql.connection.cursor()  # cursor normal o dict cursor, soporta ambos
 
     if request.method == 'POST':
-        data = request.get_json()  # leer JSON enviado por fetch
-        if not data or 'id_pedido' not in data or 'nuevo_estatus' not in data:
-            return jsonify({"success": False, "msg": "Datos incompletos"}), 400
+        try:
+            data = request.get_json()
+            print("📦 Datos recibidos:", data)
 
-        id_pedido = data['id_pedido']
-        nuevo_estatus = int(data['nuevo_estatus'])
+            if not data or 'id_pedido' not in data or 'nuevo_estatus' not in data:
+                return jsonify({"success": False, "msg": "Datos incompletos"}), 400
 
-        # Verificar si el pedido existe
-        cur.execute("SELECT IDESTATUS FROM PEDIDOS WHERE IDPEDIDO = %s", (id_pedido,))
-        pedido = cur.fetchone()
+            id_pedido = data['id_pedido']
+            nuevo_estatus = int(str(data['nuevo_estatus']).strip())
 
-        if not pedido:
+            # === Verificar si el pedido existe ===
+            cur.execute("SELECT IDESTATUS FROM PEDIDOS WHERE IDPEDIDO = %s", (id_pedido,))
+            pedido = cur.fetchone()
+
+            if not pedido:
+                cur.close()
+                return jsonify({"success": False, "msg": "Pedido no encontrado"}), 404
+
+            estatus_actual = (
+                int(pedido['IDESTATUS']) if isinstance(pedido, dict)
+                else int(pedido[0])
+            )
+            print(f"🔹 Estatus actual del pedido {id_pedido}: {estatus_actual}")
+
+            # === Validaciones ===
+            if estatus_actual == 3:
+                cur.close()
+                return jsonify({"success": False, "msg": "El pedido ya está 'Listo'"}), 400
+
+            if nuevo_estatus != estatus_actual + 1:
+                cur.close()
+                return jsonify({"success": False, "msg": "Solo se puede avanzar un nivel"}), 400
+
+            # === Iniciar transacción ===
+            mysql.connection.begin()
+            cur.execute("UPDATE PEDIDOS SET IDESTATUS = %s WHERE IDPEDIDO = %s", (nuevo_estatus, id_pedido))
+            print(f"✅ Pedido {id_pedido} actualizado temporalmente a estatus {nuevo_estatus}")
+
+            # === Si pasa de "En espera" (1) a "En preparación" (2) ===
+            if nuevo_estatus == 2:
+                print("🧮 Descontando materia prima...")
+
+                cur.execute("""
+                    SELECT cd.IDCATALOGO, cd.CANTIDAD, cd.PESO, cp.IDCATEGORIA
+                    FROM PEDIDOS_HAS_CATALOGODETALLE cd
+                    JOIN CATALOGOPRENDAS cp ON cd.IDCATALOGO = cp.IDCATALOGO
+                    WHERE cd.IDPEDIDO = %s
+                """, (id_pedido,))
+                prendas = cur.fetchall()
+
+                if prendas:
+                    peso_por_categoria = {}
+                    for p in prendas:
+                        id_cat = p['IDCATEGORIA'] if isinstance(p, dict) else p[3]
+                        peso = float(p['PESO'] if isinstance(p, dict) else p[2] or 0)
+                        peso_por_categoria[id_cat] = peso_por_categoria.get(id_cat, 0) + peso
+
+                    print("📊 Peso por categoría:", peso_por_categoria)
+                    faltantes = []
+
+                    for id_categoria, peso_total in peso_por_categoria.items():
+                        cur.execute("SELECT KGMAXIMO FROM CATEGORIAPRENDAS WHERE IDCATEGORIA = %s", (id_categoria,))
+                        cat_data = cur.fetchone()
+                        if not cat_data:
+                            continue
+
+                        kgmaximo = float(cat_data['KGMAXIMO'] if isinstance(cat_data, dict) else cat_data[0])
+                        cargas = ceil(peso_total / kgmaximo)  # ✅ Corrección aquí
+                        print(f"➡️ Categoría {id_categoria}: {peso_total} kg -> {cargas} carga(s)")
+
+                        # === Obtener materiales ===
+                        cur.execute("""
+                            SELECT c.IDMATERIAPRIMA, c.DESCPORCARGA, m.NOMBREMATERIAPRIMA,
+                                   m.CANTIDAD, m.CANTIDADUM, u.NOMBRE AS UNIDAD
+                            FROM CARGAS c
+                            JOIN MATERIAPRIMA m ON c.IDMATERIAPRIMA = m.IDMATERIAPRIMA
+                            JOIN UNIDADESMEDIDA u ON m.IDUNIDAD = u.IDUNIDAD
+                            WHERE c.IDCATEGORIA = %s
+                        """, (id_categoria,))
+                        materiales = cur.fetchall()
+
+                        for mat in materiales:
+                            id_mat = mat['IDMATERIAPRIMA'] if isinstance(mat, dict) else mat[0]
+                            desc_por_carga = float(mat['DESCPORCARGA'] if isinstance(mat, dict) else mat[1])
+                            nombre_mp = mat['NOMBREMATERIAPRIMA'] if isinstance(mat, dict) else mat[2]
+                            cantidad_actual = float(mat['CANTIDAD'] if isinstance(mat, dict) else mat[3])
+                            cantidad_um = float(mat['CANTIDADUM'] if isinstance(mat, dict) else mat[4])
+                            unidad = mat['UNIDAD'] if isinstance(mat, dict) else mat[5]
+                            total_descuento = desc_por_carga * cargas
+
+                            if cantidad_actual < total_descuento:
+                                faltantes.append({
+                                    "nombre": nombre_mp,
+                                    "unidad": unidad,
+                                    "faltante": round(total_descuento - cantidad_actual, 2),
+                                    "disponible": round(cantidad_actual, 2),
+                                    "requerido": round(total_descuento, 2)
+                                })
+                            else:
+                                cur.execute("""
+                                    UPDATE MATERIAPRIMA
+                                    SET CANTIDAD = CANTIDAD - %s
+                                    WHERE IDMATERIAPRIMA = %s
+                                """, (total_descuento, id_mat))
+
+                    # === Si hay faltantes ===
+                    if faltantes:
+                        print("🚫 Materia prima insuficiente, realizando rollback...")
+                        mysql.connection.rollback()
+                        cur.execute("UPDATE PEDIDOS SET IDESTATUS = %s WHERE IDPEDIDO = %s", (estatus_actual, id_pedido))
+                        mysql.connection.commit()
+                        cur.close()
+
+                        mensaje = "⚠️ No hay suficiente materia prima:\n"
+                        for f in faltantes:
+                            mensaje += (f"- {f['nombre']}: disponibles {f['disponible']} / "
+                                        f"requeridos {f['requerido']} ({f['faltante']} {f['unidad']} faltan)\n")
+
+                        return jsonify({"success": False, "msg": mensaje}), 400
+
+            # === Confirmar cambios ===
+            mysql.connection.commit()
             cur.close()
-            return jsonify({"success": False, "msg": "Pedido no encontrado"}), 404
+            print("✅ Pedido actualizado correctamente.")
+            return jsonify({"success": True, "msg": "Estado actualizado correctamente."})
 
-        estatus_actual = int(pedido[0])
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            mysql.connection.rollback()
+            return jsonify({"success": False, "msg": f"Error interno del servidor: {str(e)}"}), 500
 
-        # Verificar que no esté listo
-        if estatus_actual == 3:
-            cur.close()
-            return jsonify({"success": False, "msg": "El pedido ya está 'Listo'"}), 400
-
-        # Validar avance solo 1 nivel
-        if nuevo_estatus != estatus_actual + 1:
-            cur.close()
-            return jsonify({"success": False, "msg": "Solo se puede avanzar un nivel"}), 400
-
-        # Actualizar estado
-        cur.execute("""
-            UPDATE PEDIDOS SET IDESTATUS = %s WHERE IDPEDIDO = %s
-        """, (nuevo_estatus, id_pedido))
-        mysql.connection.commit()
-        cur.close()
-
-        return jsonify({"success": True})
-
-    # GET: mostrar tabla de pedidos
+    # === GET ===
     id_buscar = request.args.get('id_pedido', '')
-
     base_query = """
         SELECT 
             p.IDPEDIDO,
             CONCAT(u.NOMBRE, ' ', u.APATERNO) AS NOMBRECLIENTE,
             p.IDESTATUS,
-            e.NOMESTATUS
+            e.NOMESTATUS,
+            p.FECHAENTREGA
         FROM PEDIDOS p
         JOIN USUARIO u ON p.IDUSER = u.IDUSER
         JOIN ESTATUSPEDIDO e ON p.IDESTATUS = e.IDESTATUS
@@ -656,10 +753,10 @@ def cambioEstadoPedido():
             END, 
             p.FECHAENTREGA ASC
     """
-    cur.execute(base_query, params)
-    pedidos = cur.fetchall()  # lista de tuplas
 
-    # Lista de estatus
+    cur.execute(base_query, params)
+    pedidos = cur.fetchall()
+
     cur.execute("SELECT IDESTATUS, NOMESTATUS FROM ESTATUSPEDIDO ORDER BY IDESTATUS")
     estatus_list = cur.fetchall()
     cur.close()
@@ -670,6 +767,8 @@ def cambioEstadoPedido():
         estatus_list=estatus_list,
         id_buscar=id_buscar
     )
+
+
 
 # Nuevo Proveedor
 @app.route('/proveedores', methods=['GET', 'POST'])
@@ -1487,6 +1586,20 @@ def eliminar_rol(idrol):
     flash("✅ Rol eliminado correctamente", "success")
     return redirect(url_for('roles'))
 
+# ===== Conversión de cantidad a unidad base =====
+def convertir_a_unidad_base(cantidad, idunidad):
+    cantidad = float(cantidad)
+    factores = {
+        1: 1,       # Kilogramos → base peso
+        2: 1,       # Litros → base volumen
+        3: 0.001,   # Mililitros → Litros
+        4: 0.001,   # Gramos → Kilogramos
+        5: 0.000001 # Miligramos → Kilogramos
+        # se pueden agregar más unidades fácilmente
+    }
+    factor = factores.get(int(idunidad), 1)
+    return cantidad * factor
+
 #Nueva Materia Prima
 @app.route('/materiaPrima', methods=['GET', 'POST'])
 def materiaPrima():
@@ -1496,7 +1609,10 @@ def materiaPrima():
         nombre = request.form['nombre'].strip() #El STRIP elimina espacios al inicio y final
         stock = request.form['stock'].strip()
         unidad = request.form['unidad'].strip()
-        cantidadum = request.form['cantidadum'].strip()
+        cantidadinput = request.form['cantidadum'].strip()
+
+        # Convertimos a unidad base
+        cantidadum = convertir_a_unidad_base(cantidadinput, unidad)
 
         #Creamos una instancia de BD para generar consultas
         cur = mysql.connection.cursor()
@@ -1531,57 +1647,103 @@ def materiaPrima():
     #SI ES GET MOSTRAMOS MATERIAS PRIMAS EXISTENTES
     cur = mysql.connection.cursor()
     cur.execute('''
-        SELECT mp.IDMATERIAPRIMA, mp.NOMBREMATERIAPRIMA, mp.CANTIDAD, mp.CANTIDADUM, u.NOMBRE AS UNIDAD 
-        FROM MATERIAPRIMA mp 
+        SELECT mp.IDMATERIAPRIMA, mp.NOMBREMATERIAPRIMA, mp.CANTIDAD, mp.CANTIDADUM, mp.IDUNIDAD, u.NOMBRE AS UNIDAD
+        FROM MATERIAPRIMA mp
         JOIN UNIDADESMEDIDA u ON mp.IDUNIDAD = u.IDUNIDAD
         ORDER BY mp.NOMBREMATERIAPRIMA
     ''')
     materias = cur.fetchall()
 
+    # Diccionario de factores para revertir la conversión
+    factores_reversa = {
+        1: 1,         # Kilogramos → Kilogramos
+        2: 1,         # Litros → Litros
+        3: 1,      # Litros → Mililitros
+        4: 1000,      # Kilogramos → Gramos
+        5: 1000000    # Kilogramos → Miligramos
+    }
+
+    # Aplicar conversión inversa para mostrar en la tabla
+    for m in materias:
+        factor = factores_reversa.get(int(m['IDUNIDAD']), 1)
+        m['CANTIDADUM_MOSTRAR'] = m['CANTIDADUM'] * factor
+
+    # Obtener unidades disponibles para el select
     cur.execute('SELECT IDUNIDAD, NOMBRE FROM UNIDADESMEDIDA')
     unidadess = cur.fetchall()
     cur.close()
+
     return render_template('administrador/materiaPrima/materiaPrima.html', materias = materias, unidadess = unidadess)
 
 #Editar Materia Prima
 @app.route('/materiaPrima/editar_materia/<int:idmateriaprima>', methods=['GET', 'POST'])
 def editar_materia(idmateriaprima):
-    #Verificamos si el método es POST (si le dio actualizar a la tabla de editar materia)
     if request.method == 'POST':
-
-        #Obtener los datos colocados en el formulario editar
         nombre = request.form['nombre']
         cantidad = request.form['cantidad']
         stock = request.form['stock']
         unidad = request.form['unidad']
-        cantidadum = request.form['cantidadum']
+        cantidadum_input = request.form['cantidadum']  # valor ingresado en el form
 
-        #Creamos instancia para la BD
+        # ===== CONVERTIR CANTIDAD DE UNIDAD A BASE =====
+        cantidadum = convertir_a_unidad_base(cantidadum_input, unidad)
+
+        # Instancia de BD
         cur = mysql.connection.cursor()
 
-        #Ejecutamos la sentencia UPDATE
-        cur.execute('UPDATE MATERIAPRIMA SET NOMBREMATERIAPRIMA =%s, CANTIDAD=%s, STOCKMINIMO=%s, IDUNIDAD = %s, CANTIDADUM = %s WHERE IDMATERIAPRIMA = %s',(nombre, cantidad, stock, unidad, cantidadum, idmateriaprima))
+        # Actualizar la materia prima
+        cur.execute('''
+            UPDATE MATERIAPRIMA 
+            SET NOMBREMATERIAPRIMA = %s, CANTIDAD = %s, STOCKMINIMO = %s, IDUNIDAD = %s, CANTIDADUM = %s
+            WHERE IDMATERIAPRIMA = %s
+        ''', (nombre, cantidad, stock, unidad, cantidadum, idmateriaprima))
 
-        #Guardamos la sentencia
         mysql.connection.commit()
-
-        #Cerramos BD
         cur.close()
 
-        #Mensaje de éxito
         flash("✅ Dato actualizado correctamente", "success")
         return redirect(url_for('materiaPrima'))
 
-    #SI ES GET,MOSTRAMOS LOS DATOS ACTUALES
+    # GET: mostrar datos actuales
     cur = mysql.connection.cursor()
-    cur.execute('SELECT mp.IDMATERIAPRIMA, mp.NOMBREMATERIAPRIMA, mp.CANTIDAD, mp.STOCKMINIMO, mp.CANTIDADUM, u.IDUNIDAD, u.NOMBRE FROM MATERIAPRIMA mp JOIN UNIDADESMEDIDA u ON mp.IDUNIDAD = u.IDUNIDAD WHERE mp.IDMATERIAPRIMA=%s', (idmateriaprima,))
+    cur.execute('''
+        SELECT mp.IDMATERIAPRIMA, mp.NOMBREMATERIAPRIMA, mp.CANTIDAD, mp.STOCKMINIMO, mp.CANTIDADUM, u.IDUNIDAD, u.NOMBRE AS UNIDAD
+        FROM MATERIAPRIMA mp 
+        JOIN UNIDADESMEDIDA u ON mp.IDUNIDAD = u.IDUNIDAD 
+        WHERE mp.IDMATERIAPRIMA=%s
+    ''', (idmateriaprima,))
     materia = cur.fetchone()
-    
+
+    # Diccionario de factores de conversión inversa
+    factores_reversa = {
+        1: (1, 'Kilogramos'),
+        2: (1, 'Litros'),
+        3: (1, 'Mililitros'),
+        4: (1000, 'Gramos'),
+        5: (1000000, 'Miligramos')
+    }
+
+    factor, unidad_nombre = factores_reversa.get(int(materia['IDUNIDAD']), (1, ''))
+    cantidadum_mostrar = materia['CANTIDADUM'] * factor
+
+    # Ajuste singular/plural
+    if cantidadum_mostrar == 1 and unidad_nombre.endswith('s'):
+        unidad_nombre = unidad_nombre[:-1]
+
+    materia['CANTIDADUM_MOSTRAR'] = cantidadum_mostrar
+    materia['UNIDAD_MOSTRAR'] = unidad_nombre
+
+    # Obtener unidades disponibles
     cur.execute('SELECT IDUNIDAD, NOMBRE FROM UNIDADESMEDIDA')
     unidades = cur.fetchall()
     cur.close()
 
-    return render_template('administrador/materiaPrima/editarMateriaPrima.html', materia = materia, unidades= unidades)
+    return render_template(
+        'administrador/materiaPrima/editarMateriaPrima.html',
+        materia=materia,
+        unidades=unidades
+    )
+
 
 #Eliminar MateriaPrima
 @app.route('/materiaPrima/eliminar_materia/<int:idmateriaprima>',methods=['GET'])

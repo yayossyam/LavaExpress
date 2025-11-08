@@ -87,7 +87,7 @@
                                 {% for materia in materias %}
                                 <tr>
                                     <td>{{ materia.NOMBREMATERIAPRIMA }}</td>
-                                    <td>{{ materia.CANTIDADUM|int}} {{ materia.UNIDAD }}</td>
+                                    <td>{{ materia.CANTIDADUM_MOSTRAR|int}} {{ materia.UNIDAD }}</td>
                                     <td>{{ materia.CANTIDAD}}</td>
                                     <td>
                                         <button class="btn-edit" onclick="window.location.href='{{ url_for('editar_materia', idmateriaprima=materia.IDMATERIAPRIMA) }}'">✏️</button>

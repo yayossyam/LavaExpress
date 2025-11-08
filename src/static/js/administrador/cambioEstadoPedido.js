@@ -1,93 +1,148 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const modal = document.getElementById("confirmModal");
-    const pedidoIdSpan = document.getElementById("m-pedido-id");
-    const estadoActualSpan = document.getElementById("m-estado-actual");
-    const estadoNuevoSpan = document.getElementById("m-estado-nuevo");
-    const btnCancel = document.getElementById("btn-cancel");
-    const btnConfirm = document.getElementById("btn-confirm");
+document.addEventListener('DOMContentLoaded', () => {
+    const selectsEstado = document.querySelectorAll('.select-estado');
+    const modalConfirm = document.getElementById('confirmModal');
+    const modalFaltantes = document.getElementById('faltantesModal');
+    const btnConfirm = document.getElementById('btn-confirm');
+    const btnCancel = document.getElementById('btn-cancel');
+    const faltantesBody = document.getElementById('faltantes-body');
+    const btnCerrarFaltantes = document.getElementById('btn-cerrar-faltantes');
 
-    let selectedPedidoId = null;
-    let selectedNuevoEstatus = null;
+    const pedidoIdSpan = document.getElementById('m-pedido-id');
+    const estadoActualSpan = document.getElementById('m-estado-actual');
+    const estadoNuevoSpan = document.getElementById('m-estado-nuevo');
 
-    const abrirModal = (select) => {
-        if (!select || select.options.length < 2) return;
+    let pedidoSeleccionado = null;
+    let nuevoEstatus = null;
 
-        const row = select.closest("tr");
-        const btn = row.querySelector(".btn-confirm");
-        if (btn.disabled) return;
+    // === ALERTAS TIPO TOAST ===
+    const alertContainer = document.createElement('div');
+    alertContainer.style.position = 'fixed';
+    alertContainer.style.top = '20px';
+    alertContainer.style.right = '20px';
+    alertContainer.style.zIndex = '9999';
+    document.body.appendChild(alertContainer);
 
-        selectedPedidoId = select.dataset.pedido;
-        selectedNuevoEstatus = select.value;
+    function mostrarAlerta(mensaje, tipo = 'success') {
+        const alerta = document.createElement('div');
+        alerta.textContent = mensaje;
+        alerta.style.padding = '12px 18px';
+        alerta.style.marginBottom = '10px';
+        alerta.style.borderRadius = '10px';
+        alerta.style.fontWeight = '600';
+        alerta.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+        alerta.style.transition = 'opacity 0.3s';
+        alerta.style.whiteSpace = 'pre-line'; // permite saltos de línea
 
-        pedidoIdSpan.textContent = selectedPedidoId;
-        estadoActualSpan.textContent = select.dataset.actual;
-        estadoNuevoSpan.textContent = select.options[select.selectedIndex].textContent;
+        alerta.style.backgroundColor = tipo === 'success' ? '#28a745' : '#e06666';
+        alerta.style.color = 'white';
 
-        modal.classList.add("show");
-    };
+        alertContainer.appendChild(alerta);
+        setTimeout(() => {
+            alerta.style.opacity = '0';
+            setTimeout(() => alerta.remove(), 300);
+        }, 5000);
+    }
 
-    const tbody = document.querySelector("tbody");
+    // === MODALES ===
+    function abrirModal(modal) {
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        document.body.style.overflow = 'hidden';
+    }
 
-    // Habilitar botón al cambiar select
-    tbody.addEventListener("change", (e) => {
-        if (e.target.classList.contains("select-estado")) {
-            const row = e.target.closest("tr");
-            const btn = row.querySelector(".btn-confirm");
+    function cerrarModal(modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    btnCancel?.addEventListener('click', () => cerrarModal(modalConfirm));
+    btnCerrarFaltantes?.addEventListener('click', () => cerrarModal(modalFaltantes));
+
+    // === CAMBIO DE ESTADO ===
+    selectsEstado.forEach(select => {
+        const btn = select.closest('tr').querySelector('.btn-confirm');
+        const estatusActual = select.dataset.actual;
+        const idPedido = select.dataset.pedido;
+
+        select.addEventListener('change', () => {
             btn.disabled = false;
+            btn.addEventListener('click', () => {
+                pedidoSeleccionado = parseInt(idPedido);
+                nuevoEstatus = parseInt(select.value);
+
+                pedidoIdSpan.textContent = idPedido;
+                estadoActualSpan.textContent = estatusActual;
+                estadoNuevoSpan.textContent = select.options[select.selectedIndex].text;
+
+                abrirModal(modalConfirm);
+            }, { once: true });
+        });
+    });
+
+    // === CONFIRMAR CAMBIO ===
+    btnConfirm.addEventListener('click', async () => {
+        if (!pedidoSeleccionado || !nuevoEstatus) return;
+
+        btnConfirm.disabled = true;
+        btnConfirm.textContent = "Procesando...";
+
+        try {
+            const response = await fetch('/cambioEstadoPedido', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id_pedido: pedidoSeleccionado,
+                    nuevo_estatus: nuevoEstatus
+                })
+            });
+
+            const result = await response.json();
+            console.log("Respuesta del servidor:", result);
+
+            if (response.ok && result.success) {
+                mostrarAlerta('Estado actualizado correctamente ✅', 'success');
+                cerrarModal(modalConfirm);
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                cerrarModal(modalConfirm);
+                if (result.msg && result.msg.includes("materia prima")) {
+                    // Si el mensaje contiene faltantes, mostrar modal con detalle
+                    faltantesBody.textContent = result.msg;
+                    abrirModal(modalFaltantes);
+                } else {
+                    mostrarAlerta(result.msg || 'Error al actualizar el estado ❌', 'error');
+                }
+            }
+
+        } catch (err) {
+            console.error('Error:', err);
+            mostrarAlerta('Error de conexión con el servidor ⚠️', 'error');
+            cerrarModal(modalConfirm);
+        } finally {
+            btnConfirm.disabled = false;
+            btnConfirm.textContent = "Confirmar";
         }
     });
 
-    // Abrir modal con Enter en select o en el botón Actualizar
-    tbody.addEventListener("keydown", (e) => {
-        if (e.key !== "Enter") return;
-
-        const row = e.target.closest("tr");
-        if (!row) return;
-
-        const select = row.querySelector(".select-estado");
-        const btn = row.querySelector(".btn-confirm");
-
-        // Solo si el select existe y el botón no está deshabilitado
-        if (select && btn && !btn.disabled) {
-            e.preventDefault();
-            abrirModal(select);
-        }
+    // === CERRAR MODALES AL CLIC FUERA ===
+    window.addEventListener('click', (e) => {
+        if (e.target === modalConfirm) cerrarModal(modalConfirm);
+        if (e.target === modalFaltantes) cerrarModal(modalFaltantes);
     });
 
-    // Abrir modal al hacer click en el botón confirmar
-    tbody.addEventListener("click", (e) => {
-        if (e.target.classList.contains("btn-confirm")) {
-            const row = e.target.closest("tr");
-            const select = row.querySelector(".select-estado");
-            abrirModal(select);
-        }
-    });
-
-    // Confirmar cambio
-    btnConfirm.addEventListener("click", () => {
-        if (!selectedPedidoId || !selectedNuevoEstatus) return;
-
-        fetch(window.location.pathname, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                id_pedido: selectedPedidoId,
-                nuevo_estatus: selectedNuevoEstatus
-            })
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) window.location.reload();
-            else alert(data.msg || "Error al actualizar");
-        })
-        .catch(() => alert("Error en la comunicación"));
-    });
-
-    // Cancelar modal
-    btnCancel.addEventListener("click", () => modal.classList.remove("show"));
-
-    // Escape cierra modal
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") modal.classList.remove("show");
-    });
+    // === BUSCADOR DE PEDIDOS ===
+    const inputBuscar = document.getElementById('id_pedido');
+    if (inputBuscar) {
+        inputBuscar.addEventListener('input', () => {
+            clearTimeout(window._buscarTimer);
+            window._buscarTimer = setTimeout(() => {
+                const valor = inputBuscar.value.trim();
+                const url = new URL(window.location.href);
+                if (valor) url.searchParams.set('id_pedido', valor);
+                else url.searchParams.delete('id_pedido');
+                window.location.href = url.toString();
+            }, 800);
+        });
+    }
 });
