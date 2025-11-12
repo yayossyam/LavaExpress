@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Resultados del Reporte de Ventas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/reportes/ventas.css') }}">
+</head>
+<body>
+<div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo-box"><h2>LavaSoft</h2></div>
+        <nav class="menu">
+            <ul>
+                <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
+                <li><a href="{{ url_for('pedidos') }}">Pedidos</a></li>
+                <li><a href="{{ url_for('cambioEstadoPedido') }}">Cambiar Estado de Pedido</a></li>
+                <li><a href="{{ url_for('proveedores') }}">Proveedores</a></li>
+                <li><a href="{{ url_for('compraMateriaPrima') }}">Compra Materia Prima</a></li>
+                <li><a href="{{ url_for('catalogoProductos') }}">Catálogo Productos</a></li>
+                <li><a href="{{ url_for('categoriaPrendas') }}">Categoría de Prendas</a></li>
+                <li><a href="{{ url_for('catalogoPrendas') }}">Catálogo de Prendas</a></li>
+                <li><a href="{{ url_for('cargas') }}">Cargas</a></li>
+                <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
+                <li><a href="{{ url_for('roles') }}">Rol</a></li>
+                <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
+                <li><a href="{{ url_for('estatus') }}">Estatus de Pedido</a></li>
+                <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                <li><a href="{{ url_for('unidadesMedidas') }}">Unidades de Medida</a></li>
+                <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="main">
+        <header class="topbar">
+            <div class="header-center">
+                <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
+                <h1>LavaExpress</h1>
+            </div>
+            <div class="header-right">
+                <div class="search-bar display-only">Resultados Reporte</div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="reportes-config">
+                <h2>📊 RESULTADOS DEL REPORTE DE VENTAS</h2>
+
+                <p>Del <strong id="fechaInicioDisplay">{{ fecha_inicio }}</strong> al 
+                <strong id="fechaFinalDisplay">{{ fecha_final }}</strong></p>
+                <p>Total de Ventas: <strong id="totalVentas">{{ ventas|length }}</strong></p>
+                <br>
+
+                {% if ventas %}
+                <div class="table-responsive">
+                    <table id="tablaResultados" class="table table-striped table-ventas">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Fecha Entrega</th>
+                                <th>Servicio</th>
+                                <th>Estatus</th>
+                                <th>Total ($)</th>
+                                <th>Peso (kg)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in ventas %}
+                            <tr>
+                                <td>#{{ t.IDPEDIDO }}</td>
+                                <td>{{ t.NOMBRE_CLIENTE }}</td>
+                                <td>{{ t.FECHAENTREGA }}</td>
+                                <td>{{ t.SERVICIO }}</td>
+                                <td>{{ t.ESTATUS }}</td>
+                                <td>${{ "%.2f"|format(t.TOTAL) }}</td>
+                                <td>{{ "%.2f"|format(t.PESOTOTAL) }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="table-info">
+                                <td colspan="5" class="text-end"><strong>TOTALES:</strong></td>
+                                <td><strong>${{ "%.2f"|format(ventas|sum(attribute='TOTAL')) }}</strong></td>
+                                <td><strong>{{ "%.2f"|format(ventas|sum(attribute='PESOTOTAL')) }}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-danger">No se encontraron ventas en ese rango de fechas.</div>
+                {% endif %}
+
+                <div class="text-center mt-4 d-flex justify-content-center gap-3">
+                    <!-- 🔙 BOTÓN VOLVER CORREGIDO -->
+                    <a href="{{ url_for('reportes_ventas') }}" class="btn btn-volver">
+                        ⬅ Volver
+                    </a>
+
+                    {% if ventas %}
+                    <a href="{{ url_for('exportar_reporte_ventas', fecha_inicio=fecha_inicio, fecha_final=fecha_final) }}"
+                        class="btn btn-exportar" target="_blank" id="btnExportarPDF">
+                        🧾 Exportar PDF
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/administrador/reportesVentas.js') }}"></script>
+</body>
+</html>

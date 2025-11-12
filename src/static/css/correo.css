@@ -1,0 +1,76 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f7f7;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.header img {
+    width: 140px;
+    margin-bottom: 5px;
+}
+
+.header h2 {
+    color: #2b86c0;
+    margin-top: 5px;
+}
+
+.header span {
+    color: #2f5fb0;
+}
+
+.content {
+    font-size: 16px;
+    color: #333;
+}
+
+.button-container {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.button {
+    background: #2b86c0;
+    color: white;
+    text-decoration: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.footer {
+    font-size: 13px;
+    color: #888;
+    text-align: center;
+}
+
+/**CSS para la tabla del nuevo pedido*/
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.table th, .table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+}
+
+.table th {
+    background-color: #f0f0f0;
+}

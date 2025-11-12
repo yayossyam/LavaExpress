@@ -1,112 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reportes</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Reporte de Ventas</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/reportes/allReportes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/reportes/ventas.css') }}">
 </head>
 <body>
-    <div class="app">
+<div class="app">
+    <!-- === SIDEBAR === -->
+    <aside class="sidebar">
+        <div class="logo-box"><h2>LavaSoft</h2></div>
+        <nav class="menu">
+            <ul>
+                <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
+                <li><a href="{{ url_for('pedidos') }}">Pedidos</a></li>
+                <li><a href="{{ url_for('cambioEstadoPedido') }}">Cambiar Estado de Pedido</a></li>
+                <li><a href="{{ url_for('proveedores') }}">Proveedores</a></li>
+                <li><a href="{{ url_for('compraMateriaPrima') }}">Compra Materia Prima</a></li>
+                <li><a href="{{ url_for('catalogoProductos') }}">Catálogo Productos</a></li>
+                <li><a href="{{ url_for('categoriaPrendas') }}">Categoría de Prendas</a></li>
+                <li><a href="{{ url_for('catalogoPrendas') }}">Catálogo de Prendas</a></li>
+                <li><a href="{{ url_for('cargas') }}">Cargas</a></li>
+                <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
+                <li><a href="{{ url_for('roles') }}">Rol</a></li>
+                <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
+                <li><a href="{{ url_for('estatus') }}">Estatus de Pedido</a></li>
+                <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                <li><a href="{{ url_for('unidadesMedidas') }}">Unidades de Medida</a></li>
+                <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+    </aside>
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <div class="logo-box">
-                <h2>LavaSoft</h2>
+    <!-- === CONTENIDO PRINCIPAL === -->
+    <div class="main">
+        <header class="topbar">
+            <div class="header-center">
+                <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
+                <h1>LavaExpress</h1>
             </div>
-            <nav class="menu">
-                <ul>
-                    <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
-                    <li><a href="{{ url_for('pedidos') }}">Pedidos</a></li>
-                    <li><a href="{{ url_for('cambioEstadoPedido') }}">Cambiar Estado de Pedido</a></li>
-                    <li><a href="{{ url_for('proveedores') }}">Proveedores</a></li>
-                    <li><a href="{{ url_for('compraMateriaPrima') }}">Compra Materia Prima</a></li>
-                    <li><a href="{{ url_for('catalogoProductos') }}">Catálogo Productos</a></li>
-                    <li><a href="{{ url_for('categoriaPrendas') }}">Categoría de Prendas</a></li>
-                    <li><a href="{{ url_for('catalogoPrendas') }}">Catálogo de Prendas</a></li>
-                    <li><a href="{{ url_for('cargas') }}">Cargas</a></li>
-                    <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
-                    <li><a href="{{ url_for('roles') }}">Rol</a></li>
-                    <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
-                    <li><a href="{{ url_for('estatus') }}">Estatus de Pedido</a></li>
-                    <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
-                    <li><a href="{{ url_for('unidadesMedidas') }}">Unidades de Medida</a></li>
-                    <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
-                </ul>
-            </nav>
-        </aside>
+            <div class="header-right">
+                <div class="search-bar display-only">Resultados Reporte</div>
+            </div>
+        </header>
 
-        <!-- CONTENIDO PRINCIPAL -->
-        <div class="main">
+        <main class="content">
+            <div class="reportes-config">
+                <h2>📊 GENERAR REPORTE DE VENTAS</h2>
+                <p class="subtitulo">Seleccione el rango de fechas para generar el reporte</p>
 
-            <!-- ENCABEZADO -->
-            <header class="topbar">
-                <div class="header-center">
-                    <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
-                    <h1>LavaExpress</h1>
-                </div>
-                <div class="header-right">
-                    <div class="search-bar display-only">Reportes de Ventas</div>
-                </div>
-            </header>
-
-            <!-- CUERPO PRINCIPAL -->
-            <main class="content">
-
-                <div class="block reportes-config">
-                    <h2>REPORTE DE VENTAS</h2>
-                    <br>
-
-                    <!-- FORMULARIO DE FECHAS -->
-                    <form action="{{ url_for('reportes') }}" method="POST" class="reportes-container">
-                        <button type="button" class="btn-reporte" onclick="document.getElementById('fecha_inicio').click()">
-                            <img src="{{ url_for('static', filename='img/administrador/reportes/iconoFecha.jpeg') }}" class="btn-icono">
-                            <span>FECHA INICIO</span>
-                        </button>
-                        <input type="date" name="fecha_inicio" id="fecha_inicio" style="display:none">
-
-                        <button type="button" class="btn-reporte" onclick="document.getElementById('fecha_final').click()">
-                            <img src="{{ url_for('static', filename='img/administrador/reportes/iconoFecha.jpeg') }}" class="btn-icono">
-                            <span>FECHA FINAL</span>
-                        </button>
-                        <input type="date" name="fecha_final" id="fecha_final" style="display:none">
-
-                        <button type="submit" class="btn-back">Generar</button>
-                    </form>
-
-                    <!-- TABLA DE VENTAS -->
-                    {% if ventas %}
-                    <div class="table-container historial-ventas">
-                        <p class="fecha-rango">Desde {{ fecha_inicio }} hasta {{ fecha_final }}</p>
-                        <h2>Historial de Ventas</h2>
-                        <table class="table-ventas">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Total de Pedidos</th>
-                                    <th>Total Vendido</th>
-                                    <th>Promedio por Pedido</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for venta in ventas %}
-                                <tr>
-                                    <td>{{ venta.fecha }}</td>
-                                    <td>{{ venta.total_pedidos }}</td>
-                                    <td>{{ venta.total_vendido }}</td>
-                                    <td>{{ venta.promedio_por_pedido }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                <!-- === FORMULARIO DE FECHAS === -->
+                <form action="{{ url_for('reportes_ventas') }}" method="POST" class="reporte-form">
+                    <div class="fechas-row">
+                        <div class="campo-fecha">
+                            <label for="fechaInicio">Fecha Inicio</label>
+                            <input type="date" id="fechaInicio" name="fechaInicio" required>
+                        </div>
+                        <div class="campo-fecha">
+                            <label for="fechaFinal">Fecha Final</label>
+                            <input type="date" id="fechaFinal" name="fechaFinal" required>
+                        </div>
                     </div>
-                    {% endif %}
 
-                </div>
-            </main>
-        </div>
+                    <div class="btn-generar-container">
+                        <button type="submit" class="btn-back">Generar Reporte</button>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('reportes') }}" class="btn btn-volver">
+                            ⬅ Regresar
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        </main>
     </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/administrador/reportesVentas.js') }}"></script>
 </body>
 </html>
+

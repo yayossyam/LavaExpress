@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nuevo pedido registrado</title>
+    <style>
+        {{ css_contenido | safe }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {% if logo_b64 %}
+                <img src="data:image/png;base64,{{ logo_b64 }}" alt="LavaExpress Logo">
+            {% else %}
+                <img src="https://i.imgur.com/mZpAaIY.png" alt="LavaExpress Logo">
+            {% endif %}
+            <h2>Pedido #{{ idpedido }} registrado</h2>
+        </div>
+
+        <div class="content">
+            <p>Hola <b>{{ nombre_usuario }}</b>,</p>
+            <p>Tu pedido ha sido registrado exitosamente en <b>LavaExpress</b>.</p>
+
+            <p><b>📅 Fecha de entrega:</b> {{ fecha_entrega }}</p>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Prenda</th>
+                        <th>Cantidad</th>
+                        <th>Peso (kg)</th>
+                        <th>Precio/kg</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in prendas %}
+                    <tr>
+                        <td>{{ p.nombre }}</td>
+                        <td>{{ p.cantidad }}</td>
+                        <td>{{ "%.2f"|format(p.peso) }}</td>
+                        <td>${{ "%.2f"|format(p.precio_x_kg) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <p><b>Peso total:</b> {{ "%.2f"|format(peso_total) }} kg</p>
+            <p><b>Costo total:</b> ${{ "%.2f"|format(costo_total) }}</p>
+
+            <p>🧺 En cuanto tu pedido comience a prepararse, recibirás una notificación adicional.</p>
+        </div>
+
+        <div class="footer">
+            <p>Gracias por confiar en LavaExpress.<br>
+            © 2025 LavaExpress</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Resultados del Reporte de Tickets</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/reportes/ticket.css') }}">
+</head>
+<body>
+<div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo-box"><h2>LavaSoft</h2></div>
+        <nav class="menu">
+            <ul>
+                <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
+                <li><a href="{{ url_for('pedidos') }}">Pedidos</a></li>
+                <li><a href="{{ url_for('cambioEstadoPedido') }}">Cambiar Estado de Pedido</a></li>
+                <li><a href="{{ url_for('proveedores') }}">Proveedores</a></li>
+                <li><a href="{{ url_for('compraMateriaPrima') }}">Compra Materia Prima</a></li>
+                <li><a href="{{ url_for('catalogoProductos') }}">Catálogo Productos</a></li>
+                <li><a href="{{ url_for('categoriaPrendas') }}">Categoría de Prendas</a></li>
+                <li><a href="{{ url_for('catalogoPrendas') }}">Catálogo de Prendas</a></li>
+                <li><a href="{{ url_for('cargas') }}">Cargas</a></li>
+                <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
+                <li><a href="{{ url_for('roles') }}">Rol</a></li>
+                <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
+                <li><a href="{{ url_for('estatus') }}">Estatus de Pedido</a></li>
+                <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                <li><a href="{{ url_for('unidadesMedidas') }}">Unidades de Medida</a></li>
+                <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="main">
+        <header class="topbar">
+            <div class="header-center">
+                <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
+                <h1>LavaExpress</h1>
+            </div>
+            <div class="header-right">
+                <div class="display-only">Resultados Reporte</div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="reportes-config">
+                <h2>📊 RESULTADOS DEL REPORTE DE TICKETS</h2>
+                <p>Del <strong>{{ fecha_inicio }}</strong> al <strong>{{ fecha_final }}</strong></p>
+
+                {% if pedidos_detalles %}
+                    {% for pd in pedidos_detalles %}
+                    <div class="pedido-detalle mb-5 p-3 rounded shadow-sm">
+                        <h4 class="text-primary mb-3">Detalles Pedido #{{ pd.pedido.IDPEDIDO }}</h4>
+                        
+                        <!-- TABLA DE DATOS DEL PEDIDO -->
+                        <table class="table table-bordered info-table mb-4">
+                            <tbody>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <td>{{ pd.pedido.CLIENTE }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Fecha de entrega</th>
+                                    <td>{{ pd.pedido.FECHAENTREGA }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Estatus</th>
+                                    <td>{{ pd.pedido.ESTATUS }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Servicio</th>
+                                    <td>{{ pd.pedido.SERVICIO }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        {% if pd.prendas %}
+                        <!-- TABLA DE PRENDAS -->
+                        <table class="table table-bordered prendas-table">
+                            <thead>
+                                <tr>
+                                    <th>Prenda</th>
+                                    <th>Cantidad</th>
+                                    <th>Peso (kg)</th>
+                                    <th>Precio x kg</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pr in pd.prendas %}
+                                <tr>
+                                    <td>{{ pr.categoria }}</td>
+                                    <td>{{ "%.2f"|format(pr.cantidad) }}</td>
+                                    <td>{{ "%.2f"|format(pr.peso) }}</td>
+                                    <td>${{ "%.2f"|format(pr.precio_x_kg) }}</td>
+                                </tr>
+                                {% endfor %}
+                                <tr class="total-row">
+                                    <td colspan="2" class="text-end"><strong>Totales:</strong></td>
+                                    <td>{{ "%.2f"|format(pd.total_peso) }}</td>
+                                    <td>${{ "%.2f"|format(pd.total_costo) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p>⚠️ No se encontraron prendas para este pedido.</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-warning">No se encontraron tickets en ese rango de fechas.</div>
+                {% endif %}
+
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('reportes_tickets') }}" class="btn btn-back">⬅ Volver</a>
+                    <button id="btn-exportar-pdf" class="btn btn-exportar" 
+                    data-fecha-inicio="{{ fecha_inicio }}"
+                    data-fecha-final="{{ fecha_final }}">📄 Exportar a PDF</button>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/administrador/reportesTicket.js') }}"></script>
+</body>
+</html>

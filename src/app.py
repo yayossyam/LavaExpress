@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_file
 from flask import render_template, request, redirect, flash, url_for, Response, session,jsonify
 from flask_mysqldb import MySQL, MySQLdb #Instancia de la DB
 from config import DB_CONFIG, SECRET_KEY
@@ -6,6 +6,18 @@ from bcrypt import checkpw
 from datetime import date
 import json
 from math import ceil
+#Importaciones para el PDF
+import io
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from decimal import Decimal
+#Importaciones para el CORREO
+from flask_mail import Mail, Message
+import threading #Permite hilos que optimizan la espera de los correos
+import os, base64
+
 
 app = Flask(__name__) #Se inicializa la aplicación en la variable llamada "app" y recibirá la instancia de Flask
 app.secret_key = SECRET_KEY
@@ -18,6 +30,131 @@ app.config['MYSQL_DB'] = DB_CONFIG['db']
 app.config['MYSQL_CURSORCLASS'] = DB_CONFIG['cursorclass']
 app.config['MYSQL_PORT'] = DB_CONFIG['port']
 mysql= MySQL(app)
+
+# Configuración para el MAIL
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'lavaexpressoficiaal@gmail.com'  #Correo Personal
+app.config['MAIL_PASSWORD'] = 'vppc eqvn gkks gzvb'     #Contraseña creada para la aplicación
+app.config['MAIL_DEFAULT_SENDER'] = ('LavaExpress', 'lavaexpressoficiaal@gmail.com')
+mail = Mail(app)
+
+# Metodos para el Correo
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
+def enviar_correo_bienvenida(correo_destino, nombre_usuario):
+    asunto = "🎉 Registro exitoso en LavaExpress"
+
+    # Contruccion de Ruta Absouluta del CSS
+    css_path = os.path.join(app.root_path, 'static', 'css', 'correo.css')
+
+    # Ruta absoluta del logo
+    logo_path = os.path.join(app.root_path, 'static', 'img', 'logoLavaExpress.png')
+
+    #Leer CSS
+    try:
+        with open(css_path, 'r', encoding= 'utf-8') as f:
+            css_contenido = f.read()
+    except FileNotFoundError:
+        print(f"⚠️ No se encontró el archivo CSS en {css_path}")
+        css_contenido = ""
+
+    # Leer imagen del logo como Base64 (para mostrarla en correos locales)
+    try:
+        with open(logo_path, 'rb') as img_file:
+            logo_b64 = base64.b64encode(img_file.read()).decode('utf-8')
+    except FileNotFoundError:
+        print(f"⚠️ No se encontró el logo en {logo_path}")
+        logo_b64 = None
+    
+    # Renderizar el HTML
+    cuerpo_html = render_template('correo_bienvenida.html', nombre_usuario = nombre_usuario, css_contenido = css_contenido, logo_b64 = logo_b64)
+    
+    msg = Message(asunto, recipients=[correo_destino], html= cuerpo_html)
+
+    hilo = threading.Thread(target=send_async_email, args=(app, msg))
+    hilo.start()
+
+def enviar_correo_nuevo_pedido(correo_destino, nombre_usuario, idpedido, fecha_entrega, prendas, peso_total, costo_total):
+    asunto = f"🧺 Pedido #{idpedido} registrado en LavaExpress"
+
+    #Ruts CSS
+    css_path = os.path.join(app.root_path, 'static', 'css', 'correo.css')
+    try:
+        with open(css_path, 'r', encoding='utf-8') as f:
+            css_contenido = f.read()
+    except FileNotFoundError:
+        css_contenido = ""
+
+    # Logo
+    logo_path = os.path.join(app.root_path, 'static', 'img', 'logoLavaExpress.png')
+    logo_b64 = None
+    if os.path.exists(logo_path):
+        with open(logo_path, 'rb') as img:
+            logo_b64 = base64.b64encode(img.read()).decode('utf-8')
+
+    # Renderizamos HTML
+    cuerpo_html = render_template('correo_nuevo_pedido.html', 
+                                nombre_usuario = nombre_usuario,
+                                idpedido = idpedido, 
+                                fecha_entrega = fecha_entrega, 
+                                prendas = prendas, 
+                                peso_total = peso_total, 
+                                costo_total = costo_total, 
+                                css_contenido = css_contenido, 
+                                logo_b64 = logo_b64)
+    
+    msg = Message(asunto, recipients=[correo_destino], html=cuerpo_html)
+
+    hilo = threading.Thread(target=send_async_email, args=(app, msg))
+    hilo.start()
+
+def enviar_correo_cambio_estatus(correo_destino, nombre_usuario, idpedido, fecha_entrega, estatus, prendas, peso_total, costo_total):
+    # Definir asunto según el estatus
+    if estatus == 'En preparación':
+        asunto = f"🔧 Pedido #{idpedido} ha iniciado: {estatus}"
+    elif estatus == 'Listo':
+        asunto = f"✅ Pedido #{idpedido} está listo para entrega"
+    else:
+        asunto = f"📦 Pedido #{idpedido} actualizado"
+
+    # CSS
+    css_path = os.path.join(app.root_path, 'static', 'css', 'correo.css')
+    try:
+        with open(css_path, 'r', encoding= 'utf-8') as f:
+            css_contenido = f.read()
+    except FileNotFoundError:
+        css_contenido= ""
+
+    # Logo
+    logo_path = os.path.join(app.root_path, 'static', 'img', 'logoLavaExpress.png')
+    logo_b64 = None
+    if os.path.exists(logo_path):
+        with open(logo_path, 'rb') as img:
+            logo_b64 = base64.b64encode(img.read()).decode('utf-8')
+
+    # Renderizar HTML
+    cuerpo_html = render_template(
+        'correo_pedido.html',
+        nombre_usuario=nombre_usuario,
+        idpedido=idpedido,
+        fecha_entrega=fecha_entrega,
+        prendas=prendas,
+        peso_total=peso_total,
+        costo_total=costo_total,
+        css_contenido=css_contenido,
+        logo_b64=logo_b64,
+        estatus=estatus
+    )
+
+    # Enviar Correo
+    msg = Message(asunto, recipients=[correo_destino], html=cuerpo_html)
+    hilo = threading.Thread(target=send_async_email, args=(app, msg))
+    hilo.start()
+
 
 #Ruta INICIAL
 @app.route('/')
@@ -37,7 +174,11 @@ def login():
         cur=mysql.connection.cursor()
 
         #Este SELECT solo buscará que el correo ingresado exista en la BD
-        cur.execute('SELECT u.IDUSER, r.IDROL, u.CORREO, u.PASS FROM USUARIO u, ROLES r WHERE u.CORREO = %s',(_correo,))
+        cur.execute("""
+            SELECT IDUSER, IDROL, NOMBRE, APATERNO, CORREO, PASS
+            FROM USUARIO
+            WHERE CORREO = %s
+        """, (_correo,))
 
         #Variable de inicio de sesión
         account = cur.fetchone()
@@ -52,12 +193,14 @@ def login():
                 session['logueado'] = True
                 session['id'] = account['IDUSER']
                 session['rol'] = account['IDROL']
+                session['nombre'] = account['NOMBRE']
+                session['apellido'] = account['APATERNO']
 
                 #Identificación de rol
                 if account['IDROL'] == 1: #Rol administrativo
                     return redirect(url_for('inicioAdmin')) #Manda a ruta Admin si se cumple los requisitos
                 else: #Rol cliente
-                    return render_template('cliente/client.html')
+                    return redirect(url_for('misPedidos'))
             else:
                 flash("⚠️Contraseña incorrecta", "warning")
                 return redirect(url_for('index'))
@@ -97,6 +240,12 @@ def register():
         #Se cierra el cursor
         cur.close()
 
+        # Enviar correo de bienvenida
+        try:
+            enviar_correo_bienvenida(correo, nombre)
+        except Exception as e:
+            print(f"❌ Error al enviar el correo: {e}")
+
         flash("✅Usuario Registrado de manera exitosa","success")
         return redirect(url_for('index'))
     else:
@@ -105,12 +254,28 @@ def register():
 #Funcion de Reportes
 @app.route('/reporte')
 def inicioreporte():
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa")
+        return redirect(url_for('login'))
+    
+    if session.get != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
     return render_template('administrador/reportes/index.html')
 
 #Administrador
 #Crear Usuarios     
 @app.route('/inicioAdmin', methods=['GET', 'POST'])
 def inicioAdmin():
+    
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST' and 'nombre' in request.form and 'apellido' in request.form and 'correo' in request.form and 'password' in request.form and 'rol' in request.form:
         nombre = request.form['nombre']
         apellido = request.form['apellido']
@@ -143,6 +308,12 @@ def inicioAdmin():
         #Cerramos BD
         cur.close()
 
+        # Enviar correo de bienvenida
+        try:
+            enviar_correo_bienvenida(correo, nombre)
+        except Exception as e:
+            print(f"❌ Error al enviar correo de bienvenida: {e}")
+
         #Mensaje de exito
         flash("✅ Usuario registrado correctamente", "success")
 
@@ -159,6 +330,15 @@ def inicioAdmin():
 #Ver Usuario
 @app.route('/verUsuarios', methods=['GET'])
 def verUsuarios():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     cur = mysql.connection.cursor()
 
     #Necesitamos CONCATENAR USUARIO Y ROLES
@@ -170,6 +350,15 @@ def verUsuarios():
 #Editar Usuario
 @app.route('/verUsuarios/editar_usuarios/<int:idusuario>', methods=['GET', 'POST'])
 def editar_usuarios(idusuario):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST' and 'nombre' in request.form and 'apellido' in request.form and 'rol' in request.form:
 
         #Capturamos nuevos datos ingresados
@@ -212,6 +401,20 @@ def editar_usuarios(idusuario):
 #Eliminar Usuario
 @app.route('/verUsuarios/eliminar_usuarios/<int:idusuario>')
 def eliminar_usuarios(idusuario):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+    
+    # Evitar que el administrador se elimine a sí mismo
+    if idusuario == session.get('id'):
+        flash("⚠️ No puedes eliminar tu propio usuario.", "error")
+        return redirect(url_for('verUsuarios'))
+
     cur = mysql.connection.cursor()
     cur.execute('DELETE FROM USUARIO WHERE IDUSER = %s', (idusuario,))
     mysql.connection.commit()
@@ -224,6 +427,15 @@ def eliminar_usuarios(idusuario):
 # MOSTRAR PEDIDOS (solo lectura)
 @app.route('/pedidos')
 def pedidos():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))    
+
     cur = mysql.connection.cursor()
 
     # Obtener todos los pedidos con su estatus y servicio
@@ -254,6 +466,15 @@ def pedidos():
 # EDITAR PEDIDO PURIFICADO
 @app.route('/pedidos/editar/<int:idpedido>', methods=['GET', 'POST'])
 def editar_pedido(idpedido):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     try:
         cur = mysql.connection.cursor()
 
@@ -379,6 +600,15 @@ def editar_pedido(idpedido):
 #Detalles Pedido
 @app.route('/pedidos/detalles/<int:idpedido>')
 def detalles_pedido(idpedido):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     try:
         # Cursor con diccionarios
         cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -439,6 +669,15 @@ def detalles_pedido(idpedido):
 #Eliminar Pedido
 @app.route('/pedidos/eliminar_pedido/<int:idpedido>')
 def eliminar_pedido(idpedido):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     try: 
         #Instancia de BD
         cur = mysql.connection.cursor()
@@ -461,6 +700,17 @@ def eliminar_pedido(idpedido):
 #Nuevo Pedido
 @app.route('/nuevoPedido', methods=['GET', 'POST'])
 def nuevoPedido():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+    
+    cur = None
+
     try:
         if request.method == 'POST':
             data = request.get_json()
@@ -482,7 +732,7 @@ def nuevoPedido():
             categorias = {}
             for p in prendas:
                 cur.execute("""
-                    SELECT c.IDCATEGORIA, cat.PRECIOKG
+                    SELECT c.IDCATEGORIA, c.NOMBREPRENDA, cat.PRECIOKG
                     FROM CATALOGOPRENDAS c
                     INNER JOIN CATEGORIAPRENDAS cat ON c.IDCATEGORIA = cat.IDCATEGORIA
                     WHERE c.IDCATALOGO = %s
@@ -493,22 +743,29 @@ def nuevoPedido():
 
                 idcat = cat_info['IDCATEGORIA']
                 preciokg = float(cat_info['PRECIOKG'])
+                nombre_prenda = cat_info['NOMBREPRENDA']
 
                 if idcat not in categorias:
                     categorias[idcat] = {'peso': 0, 'preciokg': preciokg}
                 
                 categorias[idcat]['peso'] += float(p['peso'])
                 total_peso += float(p['peso'])
+                p['precio_x_kg'] = preciokg
+                p['nombre'] = nombre_prenda
+
 
             # Total por categoria
             for cat in categorias.values():
                 total_costo += cat['peso'] * cat['preciokg']
 
             # Costo adicional por servicio
-            cur.execute("SELECT COSTO_KG FROM SERVICIOPEDIDO WHERE IDSERVICIO = %s", (idservicio,))
+            cur.execute("SELECT NOMSERVICIO, COSTO_KG FROM SERVICIOPEDIDO WHERE IDSERVICIO = %s", (idservicio,))
             servicio = cur.fetchone()
             if servicio:
                 total_costo += total_peso * float(servicio['COSTO_KG'])
+                nombre_servicio = servicio['NOMSERVICIO']
+            else:
+                nombre_servicio = "Desconocido"
 
             # Insertamos PEDIDO
             cur.execute("SELECT MAX(IDPEDIDO) AS max_id FROM PEDIDOS")
@@ -528,7 +785,31 @@ def nuevoPedido():
                 """, (idpedido, p['idcatalogo'], p['cantidad'], p['peso']))
 
             mysql.connection.commit()
-            cur.close()
+            
+            # Envio de correo al cliente
+            try:
+                cur.execute("""SELECT CORREO, CONCAT(NOMBRE,' ',APATERNO) AS NOMBRE_COMPLETO
+                                FROM USUARIO
+                                WHERE IDUSER = %s
+                                """, (iduser,))
+                user = cur.fetchone()
+
+                if user and user['CORREO']:
+                    correo_destino = user['CORREO']
+                    nombre_usuario = user['NOMBRE_COMPLETO']
+
+                    enviar_correo_nuevo_pedido(
+                        correo_destino=correo_destino,
+                        nombre_usuario=nombre_usuario,
+                        idpedido=idpedido,
+                        fecha_entrega=fecha_entrega,
+                        prendas = prendas,
+                        peso_total=total_peso,
+                        costo_total=total_costo
+                    )
+            except Exception as mail_error:
+                print(f"⚠️ Error al enviar correo: {mail_error}")
+
 
             return jsonify({"success": True, "message": f"Pedido registrado. Total: ${total_costo:.2f}", "idpedido": idpedido})
 
@@ -536,6 +817,10 @@ def nuevoPedido():
         mysql.connection.rollback()
         print(f"❌ Error en POST /nuevoPedido: {e}")
         return jsonify({"success": False, "message": "Ocurrió un error al guardar el pedido", "error": str(e)}), 500
+    
+    finally:
+        if cur:
+            cur.close()
 
     # GET -> renderizar formulario
     cur = mysql.connection.cursor()
@@ -554,6 +839,15 @@ def nuevoPedido():
 #Autocompletado Pedido (Nueva Prenda)
 @app.route('/buscar_prenda')
 def buscar_prenda():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     termino = request.args.get('term', '')
     cur = mysql.connection.cursor()
     cur.execute("""
@@ -587,9 +881,18 @@ def buscar_prenda():
 
     return Response(json.dumps(data_para_js), mimetype='application/json')
 
-
+#Cambio Estado de Pedido
 @app.route('/cambioEstadoPedido', methods=['GET', 'POST'])
 def cambioEstadoPedido():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     cur = mysql.connection.cursor()  # cursor normal o dict cursor, soporta ambos
 
     if request.method == 'POST':
@@ -666,7 +969,7 @@ def cambioEstadoPedido():
                         # === Obtener materiales ===
                         cur.execute("""
                             SELECT c.IDMATERIAPRIMA, c.DESCPORCARGA, m.NOMBREMATERIAPRIMA,
-                                   m.CANTIDAD, m.CANTIDADUM, u.NOMBRE AS UNIDAD
+                                m.CANTIDAD, m.CANTIDADUM, u.NOMBRE AS UNIDAD
                             FROM CARGAS c
                             JOIN MATERIAPRIMA m ON c.IDMATERIAPRIMA = m.IDMATERIAPRIMA
                             JOIN UNIDADESMEDIDA u ON m.IDUNIDAD = u.IDUNIDAD
@@ -707,16 +1010,92 @@ def cambioEstadoPedido():
                         cur.close()
 
                         mensaje = "⚠️ No hay suficiente materia prima:\n"
-                        for f in faltantes:
-                            mensaje += (f"- {f['nombre']}: disponibles {f['disponible']} / "
-                                        f"requeridos {f['requerido']} ({f['faltante']} {f['unidad']} faltan)\n")
+                        for f, mat in zip(faltantes, materiales):
+                            cantidad_um = float(mat['CANTIDADUM'] if isinstance(mat, dict) else mat[4])
+                            unidad_real = mat['UNIDAD'] if isinstance(mat, dict) else mat[5]  # Litros, Mililitros, etc.
+
+                            # Definir unidad pequeña para mostrar "faltan X"
+                            if unidad_real.lower() == 'litros':
+                                factor = 1000
+                                unidad_mg = 'Mililitros'
+                            elif unidad_real.lower() == 'kilogramos':
+                                factor = 1000
+                                unidad_mg = 'Miligramos'
+                            else:
+                                factor = 1
+                                unidad_mg = unidad_real
+
+                            faltante_convertido = f['faltante'] * factor
+                            requerido_convertido = f['requerido'] * factor
+                            disponible_convertido = f['disponible'] * factor
+
+                            # Siempre mostramos que falta 1 unidad completa
+                            unidades_faltantes = 1
+
+                            mensaje += (
+                                f"- {f['nombre']}: disponibles {disponible_convertido:.0f} / "
+                                f"requeridos {requerido_convertido:.0f} {unidad_mg} "
+                                f"({faltante_convertido:.0f} {unidad_mg} faltan, "
+                                f"falta {unidades_faltantes} {f['nombre']} de {cantidad_um} {unidad_real})\n"
+                            )
+
+
 
                         return jsonify({"success": False, "msg": mensaje}), 400
 
             # === Confirmar cambios ===
             mysql.connection.commit()
-            cur.close()
             print("✅ Pedido actualizado correctamente.")
+
+            # Enviar el correo
+            try:
+                cur.execute("""
+                    SELECT u.CORREO, CONCAT(u.NOMBRE, ' ', u.APATERNO) AS NOMBRE_COMPLETO,
+                            p.FECHAENTREGA, p.TOTAL, p.PESOTOTAL
+                    FROM USUARIO u
+                    JOIN PEDIDOS p ON u.IDUSER = p.IDUSER
+                    WHERE p.IDPEDIDO = %s
+                    """, (id_pedido,))
+                user = cur.fetchone()
+
+                if user and user['CORREO']:
+                    correo_destino = user['CORREO']
+                    nombre_usuario = user['NOMBRE_COMPLETO']
+                    fecha_entrega = user['FECHAENTREGA']
+                    total_costo = user['TOTAL']
+                    total_peso = user['PESOTOTAL']
+
+                    # Obtener prendas del pedido
+                    cur.execute("""
+                                SELECT cd.IDCATALOGO, cp.NOMBREPRENDA, cd.CANTIDAD, cd.PESO, cd.PRECIO_X_KG
+                                FROM PEDIDOS_HAS_CATALOGODETALLE cd
+                                JOIN CATALOGOPRENDAS cp ON cd.IDCATALOGO = cp.IDCATALOGO
+                                WHERE cd.IDPEDIDO = %s
+                                """, (id_pedido,))
+                    prendas = cur.fetchall()
+
+                    # Obtener Estatus
+                    estatus_texto = None
+                    cur.execute("SELECT NOMESTATUS FROM ESTATUSPEDIDO WHERE IDESTATUS = %s", (nuevo_estatus,))
+                    estatus_info = cur.fetchone()
+                    if estatus_info:
+                        estatus_texto = estatus_info['NOMESTATUS']
+                    
+                    enviar_correo_cambio_estatus(
+                        correo_destino=correo_destino,
+                        nombre_usuario=nombre_usuario,
+                        idpedido=id_pedido,
+                        fecha_entrega=fecha_entrega,
+                        estatus=estatus_texto,
+                        prendas=prendas,
+                        peso_total=total_peso,
+                        costo_total=total_costo
+                    )
+            except Exception as mail_error:
+                print(f"⚠️ Error enviando correo de cambio de estatus: {mail_error}")
+            
+            cur.close()
+            
             return jsonify({"success": True, "msg": "Estado actualizado correctamente."})
 
         except Exception as e:
@@ -768,11 +1147,18 @@ def cambioEstadoPedido():
         id_buscar=id_buscar
     )
 
-
-
 # Nuevo Proveedor
 @app.route('/proveedores', methods=['GET', 'POST'])
 def proveedores():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST' and 'nombre' in request.form and 'correo' in request.form and 'telefono' in request.form:
         
         #Capturamos los datos obtenidos en el form
@@ -823,6 +1209,15 @@ def proveedores():
 # Editar Proveedor
 @app.route('/proveedores/editar/<int:idproveedor>', methods=['GET', 'POST'])
 def editar_proveedor(idproveedor):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST':
         #Capturamos los datos
         nombre = request.form['nombre']
@@ -854,6 +1249,15 @@ def editar_proveedor(idproveedor):
 # Eliminar Proveedor
 @app.route('/proveedores/eliminar/<int:idproveedor>')
 def eliminar_proveedor(idproveedor):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     cur = mysql.connection.cursor()
     cur.execute('DELETE FROM PROVEEDORES WHERE IDPROVEEDOR = %s', (idproveedor,))
     mysql.connection.commit()
@@ -864,6 +1268,15 @@ def eliminar_proveedor(idproveedor):
 # Compra Materia Prima
 @app.route('/compraMateriaPrima', methods=['GET', 'POST'])
 def compraMateriaPrima():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST':
         try:
             # === DATOS DE COMPRA GENERAL ===
@@ -973,6 +1386,15 @@ def compraMateriaPrima():
 #Compra Materia Prima (autocompletado Materia Prima - Detalle Compra)
 @app.route('/buscar_producto')
 def buscar_producto():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     termino = request.args.get('term', '') # term = Clave que se espera en el FRONTEND, y (' ') es el valor que se guardará en (term)
 
     cur = mysql.connection.cursor() #Instancia BD
@@ -1006,6 +1428,15 @@ def buscar_producto():
 #Catalogo Productos
 @app.route('/catalogoProductos')
 def catalogoProductos():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     #Crear instancia de BD
     cur = mysql.connection.cursor()
 
@@ -1040,6 +1471,15 @@ def catalogoProductos():
 #Nueva Categoría de Prenda
 @app.route('/categoriaPrendas', methods=['GET', 'POST'])
 def categoriaPrendas():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST' and 'nombre' in request.form and 'kgmaximo' in request.form and 'preciokg' in request.form:
         #Capturar los datos ingresados en el form
         #Convertimos los valores en minusculas
@@ -1088,6 +1528,15 @@ def categoriaPrendas():
 #Editar Categoría de Prenda
 @app.route('/categoriaPrenda/editar_categoria/<int:idcategoria>', methods=['GET', 'POST'])
 def editar_categoria(idcategoria):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     #Verificar que el formulario se haya enviado
     if request.method == 'POST':
         
@@ -1123,6 +1572,15 @@ def editar_categoria(idcategoria):
 #Eliminar Categoría de Prenda
 @app.route('/categoriaPrenda/eliminar_categoria/<int:idcategoria>')
 def eliminar_categoria(idcategoria):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     cur = mysql.connection.cursor()
     cur.execute('DELETE FROM CATEGORIAPRENDAS WHERE IDCATEGORIA = %s', (idcategoria,))
     mysql.connection.commit()
@@ -1134,6 +1592,15 @@ def eliminar_categoria(idcategoria):
 #Nueva Prenda
 @app.route('/catalogoPrendas', methods=['GET', 'POST'])
 def catalogoPrendas():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST':
         try:
             #Obtener los datos del FORM Nueva Prenda
@@ -1202,6 +1669,15 @@ def catalogoPrendas():
 #Editar Prenda
 @app.route('/catalogoPrendas/editar_prenda/<int:idcatalogo>', methods=['GET', 'POST'])
 def editar_prenda(idcatalogo):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST':
         #Capturamos nuevo FORM
         nombre = request.form['nombre']
@@ -1239,6 +1715,15 @@ def editar_prenda(idcatalogo):
 #Eliminar Prenda
 @app.route('/catalogoPrendas/eliminar_prenda/<int:idcatalogo>')
 def eliminar_prenda(idcatalogo):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     cur = mysql.connection.cursor()
     cur.execute('DELETE FROM CATALOGOPRENDAS WHERE IDCATALOGO = %s',(idcatalogo,))
     mysql.connection.commit()
@@ -1247,9 +1732,36 @@ def eliminar_prenda(idcatalogo):
 
     return redirect(url_for('catalogoPrendas'))
 
-# RUTA: CARGAS
+# ===== Conversión de cantidad por carga a unidad base según dígitos =====
+def convertir_carga_a_base(cantidad):
+    """
+    Convierte la cantidad ingresada en 'Cantidad por carga' a la unidad base
+    según la cantidad de dígitos:
+    - 3 dígitos → mililitros o gramos → dividir entre 1000
+    - 1 dígito  → litros o kilogramos → mantener igual
+    """
+    cantidad_str = str(cantidad).strip()
+    if len(cantidad_str) == 3:
+        return float(cantidad_str) / 1000  # 3 dígitos → mililitros o gramos
+    elif len(cantidad_str) == 1:
+        return float(cantidad_str)  # 1 dígito → litros o kilogramos
+    else:
+        raise ValueError("Solo se permiten cantidades de 1 o 3 dígitos para la carga")
+
+# ===== RUTA COMPLETA: CARGAS =====
 @app.route('/cargas', methods=['GET', 'POST'])
 def cargas():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    cur = mysql.connection.cursor()
+
     if request.method == 'POST':
         idcategoria = request.form['idcategoria']
         id_materias_list = request.form.getlist('idmateria')
@@ -1259,14 +1771,14 @@ def cargas():
             flash('Todos los campos son obligatorios', 'danger')
             return redirect(url_for('cargas'))
 
-        cur = mysql.connection.cursor()
         exitosas = 0
         fallidas = 0
 
         for id_materia, carga_cantidad in zip(id_materias_list, cargas_list):
             try:
                 id_materia = int(id_materia)
-                carga_cantidad = float(carga_cantidad)
+                carga_int = int(float(carga_cantidad))  # Entero para mostrar en input
+                carga_base = convertir_carga_a_base(carga_int)  # Convertir a unidad base
                 id_categoria_int = int(idcategoria)
             except ValueError:
                 fallidas += 1
@@ -1277,18 +1789,12 @@ def cargas():
             resultado = cur.fetchone()
             idclave = (resultado['max_id'] or 0) + 1
 
-            # Verificar existencia
-            cur.execute('SELECT NOMBREMATERIAPRIMA FROM MATERIAPRIMA WHERE IDMATERIAPRIMA = %s', (id_materia,))
-            materia_info = cur.fetchone()
-            nombre_materia = materia_info['NOMBREMATERIAPRIMA'] if materia_info else f"ID {id_materia}"
-
-
+            # Insertar en la tabla CARGAS
             cur.execute('INSERT INTO CARGAS(IDCLAVE, IDCATEGORIA, IDMATERIAPRIMA, DESCPORCARGA) VALUES (%s, %s, %s, %s)',
-                        (idclave, id_categoria_int, id_materia, carga_cantidad))
+                        (idclave, id_categoria_int, id_materia, carga_base))
             exitosas += 1
 
         mysql.connection.commit()
-        cur.close()
 
         if exitosas > 0:
             flash(f"Registro de Carga(s) exitoso. Se insertaron {exitosas} fila(s).", "success")
@@ -1297,28 +1803,15 @@ def cargas():
 
         return redirect(url_for('cargas'))
 
-    # GET
-    cur = mysql.connection.cursor()
-
-    # Cargas existentes
+    # ===== GET: Mostrar cargas existentes =====
     cur.execute('''
         SELECT 
             c.IDCLAVE,
             c.IDCATEGORIA,
             cat.NOMBRE AS CATEGORIA,
-            CONCAT(
-                m.NOMBREMATERIAPRIMA, ' ',
-                TRIM(TRAILING '.00' FROM 
-                    (CASE 
-                        WHEN m.CANTIDADUM = FLOOR(m.CANTIDADUM) THEN CAST(FORMAT(m.CANTIDADUM, 0) AS CHAR)
-                        ELSE CAST(m.CANTIDADUM AS CHAR)
-                    END)
-                ), ' ',
-                (CASE 
-                    WHEN m.CANTIDADUM = 1 THEN TRIM(TRAILING 's' FROM u.NOMBRE)
-                    ELSE u.NOMBRE
-                END)
-            ) AS MATERIA,
+            m.NOMBREMATERIAPRIMA,
+            m.CANTIDADUM,
+            u.NOMBRE AS UNIDAD,
             c.DESCPORCARGA
         FROM CARGAS c
         JOIN CATEGORIAPRENDAS cat ON cat.IDCATEGORIA = c.IDCATEGORIA
@@ -1327,35 +1820,75 @@ def cargas():
         ORDER BY cat.NOMBRE ASC, c.IDCLAVE ASC
     ''')
 
-
     cargas = cur.fetchall()
+
+    # Función para formatear cantidad por carga
+    def formatear_carga(desc_carga):
+        if desc_carga < 1:
+            return int(desc_carga * 1000)  # multiplicar por 1000 si es <1
+        return int(desc_carga)  # si >=1 mostrar entero
+
+    # Preparar datos legibles
+    cargas_mostrar = []
+    for c in cargas:
+        cantidadum = float(c['CANTIDADUM'])
+        unidad = c['UNIDAD']
+        if unidad.lower() in ['mililitros', 'gramos', 'miligramos']:
+            cantidad_display = cantidadum * 1000
+        else:
+            cantidad_display = cantidadum
+        materia_display = f"{c['NOMBREMATERIAPRIMA']} {int(cantidad_display)} {unidad}"
+
+        carga_display = formatear_carga(float(c['DESCPORCARGA']))
+
+        cargas_mostrar.append({
+            'IDCLAVE': c['IDCLAVE'],
+            'IDCATEGORIA': c['IDCATEGORIA'],
+            'CATEGORIA': c['CATEGORIA'],
+            'MATERIA': materia_display,
+            'DESCPORCARGA': carga_display
+        })
 
     # Agrupar por categoría para rowspan
     cargas_agrupadas = {}
     categorias_con_carga = set()
-    for c in cargas:
+    for c in cargas_mostrar:
         cat = c['CATEGORIA']
         if cat not in cargas_agrupadas:
             cargas_agrupadas[cat] = []
         cargas_agrupadas[cat].append(c)
         categorias_con_carga.add(c['CATEGORIA'])
 
-    # Categorías
+    # Categorías sin carga
     cur.execute('SELECT IDCATEGORIA, NOMBRE FROM CATEGORIAPRENDAS ORDER BY NOMBRE ASC')
     todas_categorias = cur.fetchall()
     categorias = [cat for cat in todas_categorias if cat['NOMBRE'] not in categorias_con_carga]
 
-    # Materias primas sin carga
-    cur.execute('SELECT IDMATERIAPRIMA, NOMBREMATERIAPRIMA FROM MATERIAPRIMA ORDER BY NOMBREMATERIAPRIMA ASC')
+    # Materias primas
+    cur.execute('SELECT IDMATERIAPRIMA, NOMBREMATERIAPRIMA, CANTIDADUM, IDUNIDAD FROM MATERIAPRIMA ORDER BY NOMBREMATERIAPRIMA ASC')
     materias = cur.fetchall()
 
     cur.close()
 
-    return render_template('administrador/cargas/cargas.html', cargas_agrupadas=cargas_agrupadas, categorias=categorias, materias=materias)
+    return render_template(
+        'administrador/cargas/cargas.html',
+        cargas_agrupadas=cargas_agrupadas,
+        categorias=categorias,
+        materias=materias
+    )
 
 # AUTOCOMPLETADO MATERIA PRIMA
 @app.route('/buscar_materia')
 def buscar_materia():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     termino = request.args.get('term', '')
     cur = mysql.connection.cursor()
     cur.execute("""
@@ -1387,62 +1920,59 @@ def buscar_materia():
     data_para_js = [{'id': m['IDMATERIAPRIMA'], 'nombre': m['NOMBRE_COMPLETO']} for m in materias]
     return Response(json.dumps(data_para_js), mimetype='application/json')
 
-#Editar Carga
+# ===== RUTA: EDITAR CARGA =====
 @app.route('/cargas/editar_carga/<int:idcategoria>', methods=['GET', 'POST'])
 def editar_carga(idcategoria):
-    if request.method == 'POST':
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
 
-        #Capturar el form
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    cur = mysql.connection.cursor()
+
+    if request.method == 'POST':
         id_materias = request.form.getlist('idmateria')
         cargas_list = request.form.getlist('carga')
 
-        #Crear instancia BD
-        cur = mysql.connection.cursor()
-
-        #Eliminar cargas actuales
+        # Eliminar cargas actuales
         cur.execute('DELETE FROM CARGAS WHERE IDCATEGORIA = %s', (idcategoria,))
 
-        #Insertar nuevas materias
-        for id_materia, carga_cantidad in zip(id_materias, cargas_list):
+        # Insertar nuevas materias
+        for id_materia, carga_usuario in zip(id_materias, cargas_list):
             try:
                 id_materia = int(id_materia)
-                carga_cantidad = float(carga_cantidad)
+                carga_usuario_int = int(float(carga_usuario))  # convertir a entero
+                carga_base = convertir_carga_a_base(carga_usuario_int)  # unidad base según dígitos
             except ValueError:
                 continue
 
+            # Obtener nuevo IDCLAVE
             cur.execute('SELECT MAX(IDCLAVE) AS max_id FROM CARGAS')
             resultado = cur.fetchone()
             idclave = (resultado['max_id'] or 0) + 1
 
-            cur.execute('INSERT INTO CARGAS(IDCLAVE, IDCATEGORIA, IDMATERIAPRIMA, DESCPORCARGA) VALUES (%s, %s, %s, %s)',(idclave, idcategoria, id_materia, carga_cantidad))
+            # Insertar en BD
+            cur.execute(
+                'INSERT INTO CARGAS(IDCLAVE, IDCATEGORIA, IDMATERIAPRIMA, DESCPORCARGA) VALUES (%s, %s, %s, %s)',
+                (idclave, idcategoria, id_materia, carga_base)
+            )
 
-        
         mysql.connection.commit()
         cur.close()
         flash("Carga Actualizada Correctamente", "success")
         return redirect(url_for('cargas'))
-    
-    #Si es GET
-    cur = mysql.connection.cursor()
+
+    # ===== GET: Mostrar cargas actuales =====
     cur.execute('''
         SELECT 
             c.IDMATERIAPRIMA,
             m.NOMBREMATERIAPRIMA,
             m.CANTIDADUM,
             u.NOMBRE AS UNIDAD,
-            CONCAT(
-                m.NOMBREMATERIAPRIMA, ' ',
-                TRIM(TRAILING '.00' FROM 
-                    (CASE 
-                        WHEN m.CANTIDADUM = FLOOR(m.CANTIDADUM) THEN CAST(FORMAT(m.CANTIDADUM, 0) AS CHAR)
-                        ELSE CAST(m.CANTIDADUM AS CHAR)
-                    END)
-                ), ' ',
-                (CASE 
-                    WHEN m.CANTIDADUM = 1 THEN TRIM(TRAILING 's' FROM u.NOMBRE)
-                    ELSE u.NOMBRE
-                END)
-            ) AS NOMBRE_COMPLETO,
             c.DESCPORCARGA,
             cat.NOMBRE AS CATEGORIA
         FROM CARGAS c
@@ -1453,16 +1983,54 @@ def editar_carga(idcategoria):
     ''', (idcategoria,))
     cargas_actuales = cur.fetchall()
 
+    # Multiplicar por 1000 si DESCPORCARGA <1 para mostrar legible
+    cargas_mostrar = []
+    for c in cargas_actuales:
+        carga = float(c['DESCPORCARGA'])
+        if carga < 1:
+            carga_display = int(carga * 1000)
+        else:
+            carga_display = carga
+
+        # Nombre completo de la materia
+        cantidadum = float(c['CANTIDADUM'])
+        if c['UNIDAD'].lower() in ['mililitros', 'gramos', 'miligramos']:
+            cantidadum_display = int(cantidadum * 1000)
+        else:
+            cantidadum_display = cantidadum
+        nombre_completo = f"{c['NOMBREMATERIAPRIMA']} {cantidadum_display} {c['UNIDAD']}"
+
+        cargas_mostrar.append({
+            'IDMATERIAPRIMA': c['IDMATERIAPRIMA'],
+            'NOMBRE_COMPLETO': nombre_completo,
+            'DESCPORCARGA': carga_display,
+            'CATEGORIA': c['CATEGORIA']
+        })
+
     # Materias primas disponibles
     cur.execute('SELECT IDMATERIAPRIMA, NOMBREMATERIAPRIMA FROM MATERIAPRIMA ORDER BY NOMBREMATERIAPRIMA ASC')
     materias = cur.fetchall()
     cur.close()
 
-    return render_template('administrador/cargas/editar_carga.html', cargas = cargas_actuales, materias = materias, idcategoria = idcategoria)
+    return render_template(
+        'administrador/cargas/editar_carga.html',
+        cargas=cargas_mostrar,
+        materias=materias,
+        idcategoria=idcategoria
+    )
 
 #Eliminar Carga
 @app.route('/cargas/eliminar_carga/<int:idcategoria>', methods=['GET'])
 def eliminar_carga(idcategoria):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     cur = mysql.connection.cursor()
     cur.execute("DELETE FROM CARGAS WHERE IDCATEGORIA = %s", (idcategoria,))
     mysql.connection.commit()
@@ -1473,31 +2041,694 @@ def eliminar_carga(idcategoria):
 #Reportes
 @app.route('/reportes')
 def reportes():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+    
     return render_template('administrador/reportes/index.html')
 
-#Reportes Ventas
-@app.route('/reportesVentas')
+# Reportes Ventas
+@app.route('/reportesVentas', methods=['GET', 'POST'])
 def reportes_ventas():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    ventas = []
+    fecha_inicio = None
+    fecha_final = None
+
+    if request.method == 'POST':
+        fecha_inicio = request.form.get('fechaInicio')
+        fecha_final = request.form.get('fechaFinal')
+
+        if not fecha_inicio or not fecha_final:
+            flash('⚠️ Por favor seleccione ambas fechas', 'warning')
+            return redirect(url_for('reportes_ventas'))
+        
+        try:
+            cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cur.execute("""SELECT p.IDPEDIDO,
+                                CONCAT(u.NOMBRE, ' ', COALESCE(u.APATERNO, ' ')) AS NOMBRE_CLIENTE,
+                                DATE_FORMAT(p.FECHAENTREGA, '%%d/%%m/%%Y') AS FECHAENTREGA,
+                                sp.NOMSERVICIO AS SERVICIO,
+                                e.NOMESTATUS AS ESTATUS,
+                                p.TOTAL,
+                                p.PESOTOTAL
+                            FROM PEDIDOS p
+                            INNER JOIN USUARIO u ON p.IDUSER = u.IDUSER
+                            INNER JOIN SERVICIOPEDIDO sp ON p.IDSERVICIO = sp.IDSERVICIO
+                            INNER JOIN ESTATUSPEDIDO e ON p.IDESTATUS = e.IDESTATUS
+                            WHERE p.FECHAENTREGA BETWEEN %s AND %s AND p.IDESTATUS = 3
+                            ORDER BY p.FECHAENTREGA DESC""", (fecha_inicio, fecha_final))
+            
+            ventas = cur.fetchall()
+            cur.close()
+
+            if ventas: 
+                flash(f'Se encontraron {len(ventas)} ventas', 'success')
+            else:
+                flash('No se encontraron ventas en ese rango de fechas', 'warning')
+
+            return render_template('administrador/reportes/reportesVentasResultados.html', ventas=ventas, fecha_inicio=fecha_inicio, fecha_final=fecha_final)
+
+        except Exception as e:
+            print(f"❌ Error en /reportesVentas: {e}")
+            flash(f'Error al generar el reporte: {str(e)}', 'danger')
+
     return render_template('administrador/reportes/reportesVentas.html')
+
+# Exportacion PDF Reportes de Ventas
+@app.route('/exportar_reporte_ventas', methods=['GET'])
+def exportar_reporte_ventas():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    fecha_inicio = request.args.get('fecha_inicio')
+    fecha_final = request.args.get('fecha_final')
+
+    if not fecha_inicio or not fecha_final:
+        flash('⚠️ Seleccione ambas fechas para generar el reporte de ventas', 'warning')
+        return redirect(url_for('reportes_ventas'))
+
+    try:
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cur.execute("""
+            SELECT p.IDPEDIDO,
+                CONCAT(u.NOMBRE, ' ', COALESCE(u.APATERNO, '')) AS NOMBRE_CLIENTE,
+                DATE_FORMAT(p.FECHAENTREGA, '%%d/%%m/%%Y') AS FECHAENTREGA,
+                sp.NOMSERVICIO AS SERVICIO,
+                e.NOMESTATUS AS ESTATUS,
+                p.TOTAL,
+                p.PESOTOTAL
+            FROM PEDIDOS p
+            INNER JOIN USUARIO u ON p.IDUSER = u.IDUSER
+            INNER JOIN SERVICIOPEDIDO sp ON p.IDSERVICIO = sp.IDSERVICIO
+            INNER JOIN ESTATUSPEDIDO e ON p.IDESTATUS = e.IDESTATUS
+            WHERE p.FECHAENTREGA BETWEEN %s AND %s AND p.IDESTATUS = 3
+            ORDER BY p.FECHAENTREGA DESC
+        """, (fecha_inicio, fecha_final))
+        ventas = cur.fetchall()
+        cur.close()
+
+        # --- Generar PDF ---
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        # Cambiar título de PDF
+        elements.append(Paragraph("📊 REPORTE DE VENTAS - LAVAEXPRESS", styles["Title"]))
+        elements.append(Paragraph(f"Del {fecha_inicio} al {fecha_final}", styles["Normal"]))
+        elements.append(Spacer(1, 12))
+
+        if ventas:
+            encabezados = ["ID", "Cliente", "Fecha Entrega", "Servicio", "Estatus", "Total ($)", "Peso (kg)"]
+            data_tabla = [encabezados]
+
+            total_general = 0
+            peso_general = 0
+            for t in ventas:
+                data_tabla.append([
+                    str(t["IDPEDIDO"]),
+                    t["NOMBRE_CLIENTE"],
+                    t["FECHAENTREGA"],
+                    t["SERVICIO"],
+                    t["ESTATUS"],
+                    f"{float(t['TOTAL']):.2f}",
+                    f"{float(t['PESOTOTAL']):.2f}"
+                ])
+                total_general += float(t["TOTAL"])
+                peso_general += float(t["PESOTOTAL"])
+
+            # Totales finales
+            data_tabla.append(["", "", "", "", "TOTALES:", f"{total_general:.2f}", f"{peso_general:.2f}"])
+
+            tabla = Table(data_tabla, repeatRows=1)
+            tabla.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#2980b9")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ]))
+            elements.append(tabla)
+        else:
+            elements.append(Paragraph("⚠️ No se encontraron ventas en este rango de fechas.", styles["Normal"]))
+
+        doc.build(elements)
+        buffer.seek(0)
+
+        # Cambiar nombre de archivo a ventas
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=f"reporte_ventas_{fecha_inicio}_a_{fecha_final}.pdf",
+            mimetype="application/pdf"
+        )
+
+    except Exception as e:
+        print("❌ Error al generar PDF:", e)
+        flash("Error al generar el reporte PDF de ventas", "danger")
+        return redirect(url_for('reportes_ventas'))
 
 #Reportes Reabastecimiento
 @app.route('/reportesReabastecimiento')
 def reportes_reabastecimiento():
-    return render_template('administrador/reportes/reportesReabastecimiento.html')
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
 
-#Reportes Tickets
-@app.route('/reportesTicket')
-def reportes_tickets():
-    return render_template('administrador/reportes/reportesTicket.html')
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
 
-#Reportes Inventario
+    try:
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cur.execute("""
+            SELECT
+                m.IDMATERIAPRIMA AS ID,
+                m.NOMBREMATERIAPRIMA AS NOMBRE,
+                CAST(m.CANTIDAD AS DECIMAL(10,2)) AS CANTIDAD,
+                CAST(m.STOCKMINIMO AS DECIMAL(10,2)) AS STOCK_MINIMO,
+                CAST(m.CANTIDADUM AS DECIMAL(10,2)) AS CANTIDAD_UM,
+                u.NOMBRE AS UNIDAD
+            FROM MATERIAPRIMA m
+            LEFT JOIN UNIDADESMEDIDA u ON m.IDUNIDAD = u.IDUNIDAD
+            ORDER BY m.NOMBREMATERIAPRIMA
+        """)
+        inventario = cur.fetchall()
+        cur.close()
+
+        # Ajustar unidades menores a 1 y formatear números
+        for m in inventario:
+            # Multiplicar por 1000 si es menor que 1
+            if m['CANTIDAD_UM'] < 1:
+                m['CANTIDAD_UM'] = float(m['CANTIDAD_UM']) * 1000
+            else:
+                m['CANTIDAD_UM'] = float(m['CANTIDAD_UM'])
+
+            # Convertir a float para manipular
+            m['CANTIDAD'] = float(m['CANTIDAD'])
+            m['STOCK_MINIMO'] = float(m['STOCK_MINIMO'])
+
+            # Mostrar enteros si es exacto
+            m['CANTIDAD_UM'] = int(m['CANTIDAD_UM']) if m['CANTIDAD_UM'].is_integer() else m['CANTIDAD_UM']
+            m['CANTIDAD'] = int(m['CANTIDAD']) if m['CANTIDAD'].is_integer() else m['CANTIDAD']
+            m['STOCK_MINIMO'] = int(m['STOCK_MINIMO']) if m['STOCK_MINIMO'].is_integer() else m['STOCK_MINIMO']
+
+        return render_template(
+            'administrador/reportes/reportesReabastecimiento.html',
+            inventario=inventario
+        )
+
+    except Exception as e:
+        print(f"❌ Error en /reportesReabastecimiento: {e}")
+        flash(f'Error al generar el reporte: {str(e)}', 'danger')
+        return render_template('administrador/reportes/reportesReabastecimiento.html', inventario=[])
+
+#Exportacion PDF Reportes de Reabastecimiento
+@app.route('/exportar_reporte_reabastecimiento')
+def exportar_reporte_reabastecimiento():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    try:
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cur.execute("""
+            SELECT
+                m.IDMATERIAPRIMA AS ID,
+                m.NOMBREMATERIAPRIMA AS NOMBRE,
+                CAST(m.CANTIDAD AS DECIMAL(10,2)) AS CANTIDAD,
+                CAST(m.STOCKMINIMO AS DECIMAL(10,2)) AS STOCK_MINIMO,
+                CAST(m.CANTIDADUM AS DECIMAL(10,2)) AS CANTIDAD_UM,
+                u.NOMBRE AS UNIDAD
+            FROM MATERIAPRIMA m
+            INNER JOIN UNIDADESMEDIDA u ON m.IDUNIDAD = u.IDUNIDAD
+            ORDER BY m.NOMBREMATERIAPRIMA
+        """)
+        inventario = cur.fetchall()
+        cur.close()
+
+        if not inventario:
+            flash('⚠️ No se encontraron registros para exportar', 'warning')
+            return redirect(url_for('reportes_reabastecimiento'))
+
+        for m in inventario:
+            if m['CANTIDAD_UM'] < 1:
+                m['CANTIDAD_UM'] = float(m['CANTIDAD_UM']) * 1000
+            else:
+                m['CANTIDAD_UM'] = float(m['CANTIDAD_UM'])
+
+            m['CANTIDAD'] = float(m['CANTIDAD'])
+            m['STOCK_MINIMO'] = float(m['STOCK_MINIMO'])
+
+            m['CANTIDAD_UM'] = int(m['CANTIDAD_UM']) if m['CANTIDAD_UM'].is_integer() else m['CANTIDAD_UM']
+            m['CANTIDAD'] = int(m['CANTIDAD']) if m['CANTIDAD'].is_integer() else m['CANTIDAD']
+            m['STOCK_MINIMO'] = int(m['STOCK_MINIMO']) if m['STOCK_MINIMO'].is_integer() else m['STOCK_MINIMO']
+
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        elements.append(Paragraph("📊 REPORTE DE REABASTECIMIENTO - LAVAEXPRESS", styles["Title"]))
+        elements.append(Spacer(1, 12))
+
+        data = [["ID", "Materia Prima", "Cantidad (UM)", "Cantidad Existente", "Stock Mínimo"]]
+        for m in inventario:
+            cantidad_um_str = f"{m['CANTIDAD_UM']} {m['UNIDAD']}"
+            data.append([m['ID'], m['NOMBRE'], cantidad_um_str, m['CANTIDAD'], m['STOCK_MINIMO']])
+
+        tabla = Table(data, repeatRows=1)
+
+        estilos = [
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#2980b9")),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+            ('BOTTOMPADDING', (0,0), (-1,0), 6),
+        ]
+
+        for i, m in enumerate(inventario):
+            if m['CANTIDAD'] < m['STOCK_MINIMO']:
+                estilos.append(('BACKGROUND', (0, i+1), (-1, i+1), colors.HexColor("#f8d7da")))
+
+        tabla.setStyle(TableStyle(estilos))
+        elements.append(tabla)
+        elements.append(Spacer(1,12))
+
+        doc.build(elements)
+        buffer.seek(0)
+
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name="reporte_reabastecimiento.pdf",
+            mimetype="application/pdf"
+        )
+
+    except Exception as e:
+        print(f"❌ Error al generar PDF de reabastecimiento: {e}")
+        flash("Error al generar el PDF de reabastecimiento", "danger")
+        return redirect(url_for('reportes_reabastecimiento'))
+
+# Reportes Inventario
 @app.route('/reportesInventario')
 def reportes_inventario():
-    return render_template('administrador/reportes/reportesInventario.html')
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    try:
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cur.execute("""
+            SELECT
+                m.IDMATERIAPRIMA AS ID,
+                m.NOMBREMATERIAPRIMA AS NOMBRE,
+                CAST(m.CANTIDAD AS DECIMAL(10,2)) AS CANTIDAD,
+                CAST(m.STOCKMINIMO AS DECIMAL(10,2)) AS STOCK_MINIMO,
+                CAST(m.CANTIDADUM AS DECIMAL(10,2)) AS CANTIDAD_UM,
+                u.NOMBRE AS UNIDAD
+            FROM MATERIAPRIMA m
+            LEFT JOIN UNIDADESMEDIDA u ON m.IDUNIDAD = u.IDUNIDAD
+            ORDER BY m.NOMBREMATERIAPRIMA
+        """)
+        inventario = cur.fetchall()
+        cur.close()
+
+        # Ajustar unidades menores a 1 y formatear números
+        for m in inventario:
+            if m['CANTIDAD_UM'] < 1:
+                m['CANTIDAD_UM'] = float(m['CANTIDAD_UM']) * 1000
+            else:
+                m['CANTIDAD_UM'] = float(m['CANTIDAD_UM'])
+
+            m['CANTIDAD'] = float(m['CANTIDAD'])
+            m['STOCK_MINIMO'] = float(m['STOCK_MINIMO'])
+
+            m['CANTIDAD_UM'] = int(m['CANTIDAD_UM']) if m['CANTIDAD_UM'].is_integer() else m['CANTIDAD_UM']
+            m['CANTIDAD'] = int(m['CANTIDAD']) if m['CANTIDAD'].is_integer() else m['CANTIDAD']
+            m['STOCK_MINIMO'] = int(m['STOCK_MINIMO']) if m['STOCK_MINIMO'].is_integer() else m['STOCK_MINIMO']
+
+        return render_template(
+            'administrador/reportes/reportesInventario.html',
+            inventario=inventario
+        )
+
+    except Exception as e:
+        print(f"❌ Error en /reportesInventario: {e}")
+        flash(f'Error al generar el reporte: {str(e)}', 'danger')
+        return render_template('administrador/reportes/reportesInventario.html', inventario=[])
+
+# Exportacion PDF Reportes de Inventario
+@app.route('/exportar_reporte_inventario')
+def exportar_reporte_inventario():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    try:
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cur.execute("""
+            SELECT
+                m.IDMATERIAPRIMA AS ID,
+                m.NOMBREMATERIAPRIMA AS NOMBRE,
+                CAST(m.CANTIDAD AS DECIMAL(10,2)) AS CANTIDAD,
+                CAST(m.STOCKMINIMO AS DECIMAL(10,2)) AS STOCK_MINIMO,
+                CAST(m.CANTIDADUM AS DECIMAL(10,2)) AS CANTIDAD_UM,
+                u.NOMBRE AS UNIDAD
+            FROM MATERIAPRIMA m
+            LEFT JOIN UNIDADESMEDIDA u ON m.IDUNIDAD = u.IDUNIDAD
+            ORDER BY m.NOMBREMATERIAPRIMA
+        """)
+        inventario = cur.fetchall()
+        cur.close()
+
+        if not inventario:
+            flash('⚠️ No se encontraron registros para exportar', 'warning')
+            return redirect(url_for('reportes_inventario'))
+
+        # Ajustar unidades y números
+        for m in inventario:
+            if m['CANTIDAD_UM'] < 1:
+                m['CANTIDAD_UM'] = float(m['CANTIDAD_UM']) * 1000
+            else:
+                m['CANTIDAD_UM'] = float(m['CANTIDAD_UM'])
+
+            m['CANTIDAD'] = float(m['CANTIDAD'])
+            m['STOCK_MINIMO'] = float(m['STOCK_MINIMO'])
+
+            m['CANTIDAD_UM'] = int(m['CANTIDAD_UM']) if m['CANTIDAD_UM'].is_integer() else m['CANTIDAD_UM']
+            m['CANTIDAD'] = int(m['CANTIDAD']) if m['CANTIDAD'].is_integer() else m['CANTIDAD']
+            m['STOCK_MINIMO'] = int(m['STOCK_MINIMO']) if m['STOCK_MINIMO'].is_integer() else m['STOCK_MINIMO']
+
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        elements.append(Paragraph("📊 REPORTE DE INVENTARIO - LAVAEXPRESS", styles["Title"]))
+        elements.append(Spacer(1, 12))
+
+        data = [["ID", "Materia Prima", "Cantidad (UM)", "Cantidad Existente", "Stock Mínimo"]]
+        for m in inventario:
+            cantidad_um_str = f"{m['CANTIDAD_UM']} {m['UNIDAD']}"
+            data.append([m['ID'], m['NOMBRE'], cantidad_um_str, m['CANTIDAD'], m['STOCK_MINIMO']])
+
+        tabla = Table(data, repeatRows=1)
+
+        estilos = [
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#2980b9")),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+            ('BOTTOMPADDING', (0,0), (-1,0), 6),
+        ]
+
+
+
+        tabla.setStyle(TableStyle(estilos))
+        elements.append(tabla)
+        elements.append(Spacer(1,12))
+
+        doc.build(elements)
+        buffer.seek(0)
+
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name="reporte_inventario.pdf",
+            mimetype="application/pdf"
+        )
+
+    except Exception as e:
+        print(f"❌ Error al generar PDF de inventario: {e}")
+        flash("Error al generar el PDF de inventario", "danger")
+        return redirect(url_for('reportes_inventario'))
+
+#Reportes Tickets
+@app.route('/reportesTicket', methods=['GET', 'POST'])
+def reportes_tickets():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    if request.method == 'POST':
+        fecha_inicio = request.form.get('fechaInicio')
+        fecha_final = request.form.get('fechaFinal')
+
+        if not fecha_inicio or not fecha_final:
+            flash('⚠️ Por favor seleccione ambas fechas', 'warning')
+            return redirect(url_for('reportes_tickets'))
+
+        pedidos_detalles = []
+
+        try:
+            cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            # Traer tickets
+            cur.execute("""
+                SELECT p.IDPEDIDO,
+                    CONCAT(u.NOMBRE, ' ', COALESCE(u.APATERNO, '')) AS CLIENTE,
+                    p.FECHAENTREGA,
+                    sp.NOMSERVICIO AS SERVICIO,
+                    e.NOMESTATUS AS ESTATUS,
+                    p.TOTAL,
+                    p.PESOTOTAL,
+                    p.IDSERVICIO
+                FROM PEDIDOS p
+                INNER JOIN USUARIO u ON p.IDUSER = u.IDUSER
+                INNER JOIN SERVICIOPEDIDO sp ON p.IDSERVICIO = sp.IDSERVICIO
+                INNER JOIN ESTATUSPEDIDO e ON p.IDESTATUS = e.IDESTATUS
+                WHERE p.FECHAENTREGA BETWEEN %s AND %s
+                ORDER BY p.FECHAENTREGA DESC
+            """, (fecha_inicio, fecha_final))
+            tickets = cur.fetchall()
+
+            # Para cada ticket, traer prendas
+            for t in tickets:
+                cur.execute("""
+                    SELECT cat.NOMBRE AS categoria,
+                        d.CANTIDAD AS cantidad,
+                        d.PESO AS peso,
+                        cat.PRECIOKG AS precio_x_kg
+                    FROM PEDIDOS_HAS_CATALOGODETALLE d
+                    INNER JOIN CATEGORIAPRENDAS cat ON d.IDCATALOGO = cat.IDCATEGORIA
+                    WHERE d.IDPEDIDO = %s
+                    ORDER BY cat.NOMBRE
+                """, (t['IDPEDIDO'],))
+                prendas = cur.fetchall()
+
+                total_peso = sum(float(p['peso']) for p in prendas)
+                total_costo = sum(float(p['peso']) * float(p['precio_x_kg']) for p in prendas)
+
+                # Costo por servicio
+                cur.execute("SELECT COSTO_KG FROM SERVICIOPEDIDO WHERE IDSERVICIO = %s", (t['IDSERVICIO'],))
+                servicio = cur.fetchone()
+                if servicio:
+                    total_costo += total_peso * float(servicio['COSTO_KG'])
+
+                pedidos_detalles.append({
+                    'pedido': t,
+                    'prendas': prendas,
+                    'total_peso': total_peso,
+                    'total_costo': total_costo
+                })
+
+            cur.close()
+
+        except Exception as e:
+            print(f"❌ Error en /reportesTicket: {e}")
+            flash(f'Error al generar el reporte: {str(e)}', 'danger')
+
+        return render_template(
+            'administrador/reportes/reportesTicketResultados.html',
+            pedidos_detalles=pedidos_detalles,
+            fecha_inicio=fecha_inicio,
+            fecha_final=fecha_final
+        )
+
+    # GET: mostrar solo formulario
+    return render_template('administrador/reportes/reportesTicket.html')
+
+# Exportacion PDF Reportes
+@app.route('/exportar_reporte_tickets', methods=['GET'])
+def exportar_reporte_tickets():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    fecha_inicio = request.args.get('fecha_inicio')
+    fecha_final = request.args.get('fecha_final')
+
+    if not fecha_inicio or not fecha_final:
+        flash('⚠️ Seleccione ambas fechas para generar el reporte', 'warning')
+        return redirect(url_for('reportes_tickets'))
+
+    try:
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        # Traer tickets dentro del rango
+        cur.execute("""
+            SELECT p.IDPEDIDO,
+                CONCAT(u.NOMBRE, ' ', COALESCE(u.APATERNO, '')) AS CLIENTE,
+                p.FECHAENTREGA,
+                sp.NOMSERVICIO AS SERVICIO,
+                e.NOMESTATUS AS ESTATUS,
+                p.TOTAL,
+                p.PESOTOTAL,
+                p.IDSERVICIO
+            FROM PEDIDOS p
+            INNER JOIN USUARIO u ON p.IDUSER = u.IDUSER
+            INNER JOIN SERVICIOPEDIDO sp ON p.IDSERVICIO = sp.IDSERVICIO
+            INNER JOIN ESTATUSPEDIDO e ON p.IDESTATUS = e.IDESTATUS
+            WHERE p.FECHAENTREGA BETWEEN %s AND %s
+            ORDER BY p.FECHAENTREGA DESC
+        """, (fecha_inicio, fecha_final))
+        tickets = cur.fetchall()
+
+        if not tickets:
+            flash('⚠️ No se encontraron tickets en ese rango de fechas', 'warning')
+            return redirect(url_for('reportes_tickets'))
+
+        # --- Crear PDF ---
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        elements.append(Paragraph("📊 REPORTE DETALLADO DE TICKETS - LAVAEXPRESS", styles["Title"]))
+        elements.append(Paragraph(f"Del {fecha_inicio} al {fecha_final}", styles["Normal"]))
+        elements.append(Spacer(1, 12))
+
+        # Iterar tickets
+        for t in tickets:
+            elements.append(Paragraph(f"🧾 Ticket #{t['IDPEDIDO']} - Cliente: {t['CLIENTE']}", styles["Heading2"]))
+            elements.append(Paragraph(f"Fecha Entrega: {t['FECHAENTREGA']} | Estatus: {t['ESTATUS']} | Servicio: {t['SERVICIO']}", styles["Normal"]))
+            elements.append(Spacer(1, 6))
+
+            # Detalles de prendas
+            cur.execute("""
+                SELECT cat.NOMBRE AS categoria, c.NOMBREPRENDA AS prenda, d.CANTIDAD AS cantidad,
+                    d.PESO AS peso, cat.PRECIOKG AS precio_x_kg
+                FROM PEDIDOS_HAS_CATALOGODETALLE d
+                INNER JOIN CATALOGOPRENDAS c ON d.IDCATALOGO = c.IDCATALOGO
+                INNER JOIN CATEGORIAPRENDAS cat ON c.IDCATEGORIA = cat.IDCATEGORIA
+                WHERE d.IDPEDIDO = %s
+                ORDER BY cat.NOMBRE, c.NOMBREPRENDA
+            """, (t['IDPEDIDO'],))
+            prendas = cur.fetchall()
+
+            total_cantidad = sum(float(p['cantidad']) for p in prendas)
+            total_peso = sum(float(p['peso']) for p in prendas)
+            total_costo = sum(float(p['peso']) * float(p['precio_x_kg']) for p in prendas)
+
+            # Costo por servicio
+            cur.execute("SELECT COSTO_KG FROM SERVICIOPEDIDO WHERE IDSERVICIO = %s", (t['IDSERVICIO'],))
+            servicio = cur.fetchone()
+            if servicio:
+                total_costo += total_peso * float(servicio['COSTO_KG'])
+
+            if prendas:
+                data_tabla = [["Categoría", "Prenda", "Cantidad", "Peso (kg)", "Precio x kg"]]
+                for p in prendas:
+                    data_tabla.append([
+                        p['categoria'],
+                        p['prenda'],
+                        f"{float(p['cantidad']):.2f}",
+                        f"{float(p['peso']):.2f}",
+                        f"${float(p['precio_x_kg']):.2f}"
+                    ])
+                data_tabla.append(["", "TOTALES:", f"{total_cantidad:.2f}", f"{total_peso:.2f}", f"${total_costo:.2f}"])
+
+                tabla = Table(data_tabla, repeatRows=1)
+                tabla.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#2980b9")),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ]))
+                elements.append(tabla)
+                elements.append(Spacer(1, 12))
+            else:
+                elements.append(Paragraph("⚠️ No se encontraron prendas para este ticket.", styles["Normal"]))
+                elements.append(Spacer(1, 12))
+
+        cur.close()
+        doc.build(elements)
+        buffer.seek(0)
+
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=f"reporte_detalle_tickets_{fecha_inicio}_a_{fecha_final}.pdf",
+            mimetype="application/pdf"
+        )
+
+    except Exception as e:
+        print(f"❌ Error al generar PDF detallado de tickets: {e}")
+        flash("Error al generar el reporte PDF detallado", "danger")
+        return redirect(url_for('reportes_tickets'))
 
 #Roles
 @app.route('/roles', methods=['GET', 'POST'])
 def roles():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST' and 'nombre' in request.form:
         
         #Capturamos el nuevo rol
@@ -1548,6 +2779,15 @@ def roles():
 #Editar Rol
 @app.route('/roles/editar/<int:idrol>', methods=['GET', 'POST'])
 def editar_rol(idrol):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST':
         #Capturamos los datos del formulario
         nombre = request.form['nombre']
@@ -1579,6 +2819,15 @@ def editar_rol(idrol):
 #Eliminar Rol
 @app.route('/roles/eliminar/<int:idrol>')
 def eliminar_rol(idrol):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     cur = mysql.connection.cursor()
     cur.execute('DELETE FROM ROLES WHERE IDROL=%s', (idrol,))
     mysql.connection.commit()
@@ -1586,65 +2835,80 @@ def eliminar_rol(idrol):
     flash("✅ Rol eliminado correctamente", "success")
     return redirect(url_for('roles'))
 
-# ===== Conversión de cantidad a unidad base =====
-def convertir_a_unidad_base(cantidad, idunidad):
-    cantidad = float(cantidad)
-    factores = {
-        1: 1,       # Kilogramos → base peso
-        2: 1,       # Litros → base volumen
-        3: 0.001,   # Mililitros → Litros
-        4: 0.001,   # Gramos → Kilogramos
-        5: 0.000001 # Miligramos → Kilogramos
-        # se pueden agregar más unidades fácilmente
-    }
-    factor = factores.get(int(idunidad), 1)
-    return cantidad * factor
+# ===== Conversión de cantidad a unidad base según dígitos =====
+def convertir_a_unidad_base(cantidad):
+    cantidad_str = str(cantidad).strip()
+    if len(cantidad_str) == 3:
+        # 3 dígitos → mililitros o gramos → dividir entre 1000
+        cantidad_base = float(cantidad_str) / 1000
+    elif len(cantidad_str) == 1:
+        # 1 dígito → litros o kilogramos → mantener igual
+        cantidad_base = float(cantidad_str)
+    else:
+        raise ValueError("Solo se permiten cantidades de 1 o 3 dígitos")
+    return cantidad_base
 
-#Nueva Materia Prima
+# NUEVA MATERIA PRIMA
 @app.route('/materiaPrima', methods=['GET', 'POST'])
 def materiaPrima():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST' and 'nombre' in request.form and 'stock' in request.form and 'unidad' in request.form and 'cantidadum' in request.form:
 
-        #Capturamos los datos ingresados en el form
-        nombre = request.form['nombre'].strip() #El STRIP elimina espacios al inicio y final
+        # Capturamos los datos ingresados en el form
+        nombre = request.form['nombre'].strip()
         stock = request.form['stock'].strip()
         unidad = request.form['unidad'].strip()
         cantidadinput = request.form['cantidadum'].strip()
 
-        # Convertimos a unidad base
-        cantidadum = convertir_a_unidad_base(cantidadinput, unidad)
+        try:
+            # Convertimos a unidad base usando solo dígitos 1 o 3
+            cantidadum = convertir_a_unidad_base(cantidadinput)
+        except ValueError as e:
+            flash(f"❌ {e}", "danger")
+            return redirect(url_for('materiaPrima'))
 
-        #Creamos una instancia de BD para generar consultas
+        # Creamos una instancia de BD
         cur = mysql.connection.cursor()
 
-        #Verificar si ya existe la materia prima
-        #El LOWER convierte la informacion ingresada en minusculas y compara
-        cur.execute('SELECT * FROM MATERIAPRIMA WHERE LOWER(NOMBREMATERIAPRIMA) = %s AND IDUNIDAD = %s AND CANTIDADUM = %s',(nombre.lower(), unidad, cantidadum))
+        # Verificar si ya existe la materia prima
+        cur.execute(
+            'SELECT * FROM MATERIAPRIMA WHERE LOWER(NOMBREMATERIAPRIMA) = %s AND IDUNIDAD = %s AND CANTIDADUM = %s',
+            (nombre.lower(), unidad, cantidadum)
+        )
         existente = cur.fetchone()
 
         if existente:
             flash("❌ La materia prima con esa unidad y cantidad ya existe", "danger")
+            cur.close()
             return redirect(url_for('materiaPrima'))
 
-        #Obtenemos el ultimo ID 
+        # Obtener el último ID
         cur.execute('SELECT MAX(IDMATERIAPRIMA) AS max_id FROM MATERIAPRIMA')
         result = cur.fetchone()
         id = (result['max_id'] or 0) + 1
 
-        #Generamos INSERT
-        cur.execute('INSERT INTO MATERIAPRIMA(IDMATERIAPRIMA, NOMBREMATERIAPRIMA, CANTIDAD, STOCKMINIMO, IDUNIDAD, CANTIDADUM) VALUES (%s, %s, %s, %s, %s, %s)', (id, nombre, 0, stock, unidad, cantidadum))
+        # Generar INSERT
+        cur.execute(
+            'INSERT INTO MATERIAPRIMA(IDMATERIAPRIMA, NOMBREMATERIAPRIMA, CANTIDAD, STOCKMINIMO, IDUNIDAD, CANTIDADUM) VALUES (%s, %s, %s, %s, %s, %s)',
+            (id, nombre, 0, stock, unidad, cantidadum)
+        )
 
-        #Guardamos INSERT
+        # Guardar INSERT
         mysql.connection.commit()
-
-        #Cerramos BD
         cur.close()
 
-        #Mensaje de éxito
-        flash("✅ Materia Prima creada de manera éxitosa", "success")
+        flash("✅ Materia Prima creada de manera exitosa", "success")
         return redirect(url_for('materiaPrima'))
-    
-    #SI ES GET MOSTRAMOS MATERIAS PRIMAS EXISTENTES
+
+    # SI ES GET: mostrar materias primas existentes
     cur = mysql.connection.cursor()
     cur.execute('''
         SELECT mp.IDMATERIAPRIMA, mp.NOMBREMATERIAPRIMA, mp.CANTIDAD, mp.CANTIDADUM, mp.IDUNIDAD, u.NOMBRE AS UNIDAD
@@ -1654,42 +2918,51 @@ def materiaPrima():
     ''')
     materias = cur.fetchall()
 
-    # Diccionario de factores para revertir la conversión
-    factores_reversa = {
-        1: 1,         # Kilogramos → Kilogramos
-        2: 1,         # Litros → Litros
-        3: 1,      # Litros → Mililitros
-        4: 1000,      # Kilogramos → Gramos
-        5: 1000000    # Kilogramos → Miligramos
-    }
-
-    # Aplicar conversión inversa para mostrar en la tabla
+    # Convertir de unidad base a mostrar (simplemente multiplicar si quieres revertir)
+    # Solo manejamos 1 dígito (L o kg) y 3 dígitos (ml o g)
     for m in materias:
-        factor = factores_reversa.get(int(m['IDUNIDAD']), 1)
-        m['CANTIDADUM_MOSTRAR'] = m['CANTIDADUM'] * factor
+        cantidad_base = float(m['CANTIDADUM'])
+        if int(m['IDUNIDAD']) in [3, 4, 5]:  # unidades pequeñas que se ingresan con 3 dígitos
+            m['CANTIDADUM_MOSTRAR'] = cantidad_base * 1000
+        else:  # unidades grandes que se ingresan con 1 dígito
+            m['CANTIDADUM_MOSTRAR'] = cantidad_base
 
     # Obtener unidades disponibles para el select
     cur.execute('SELECT IDUNIDAD, NOMBRE FROM UNIDADESMEDIDA')
     unidadess = cur.fetchall()
     cur.close()
 
-    return render_template('administrador/materiaPrima/materiaPrima.html', materias = materias, unidadess = unidadess)
+    return render_template('administrador/materiaPrima/materiaPrima.html', materias=materias, unidadess=unidadess)
 
 #Editar Materia Prima
+# ===== Editar Materia Prima =====
 @app.route('/materiaPrima/editar_materia/<int:idmateriaprima>', methods=['GET', 'POST'])
 def editar_materia(idmateriaprima):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    cur = mysql.connection.cursor()
+    
     if request.method == 'POST':
-        nombre = request.form['nombre']
-        cantidad = request.form['cantidad']
-        stock = request.form['stock']
-        unidad = request.form['unidad']
-        cantidadum_input = request.form['cantidadum']  # valor ingresado en el form
+        # Capturamos los datos del formulario
+        nombre = request.form['nombre'].strip()
+        cantidad = request.form['cantidad'].strip()
+        stock = request.form['stock'].strip()
+        unidad = request.form['unidad'].strip()
+        cantidadum_input = request.form['cantidadum'].strip()  # valor ingresado en el form
 
         # ===== CONVERTIR CANTIDAD DE UNIDAD A BASE =====
-        cantidadum = convertir_a_unidad_base(cantidadum_input, unidad)
-
-        # Instancia de BD
-        cur = mysql.connection.cursor()
+        try:
+            cantidadum = convertir_a_unidad_base(cantidadum_input)
+        except ValueError as e:
+            flash(f"❌ {e}", "danger")
+            return redirect(url_for('editar_materia', idmateriaprima=idmateriaprima))
 
         # Actualizar la materia prima
         cur.execute('''
@@ -1704,29 +2977,28 @@ def editar_materia(idmateriaprima):
         flash("✅ Dato actualizado correctamente", "success")
         return redirect(url_for('materiaPrima'))
 
-    # GET: mostrar datos actuales
-    cur = mysql.connection.cursor()
+    # ===== GET: mostrar datos actuales =====
     cur.execute('''
         SELECT mp.IDMATERIAPRIMA, mp.NOMBREMATERIAPRIMA, mp.CANTIDAD, mp.STOCKMINIMO, mp.CANTIDADUM, u.IDUNIDAD, u.NOMBRE AS UNIDAD
         FROM MATERIAPRIMA mp 
         JOIN UNIDADESMEDIDA u ON mp.IDUNIDAD = u.IDUNIDAD 
-        WHERE mp.IDMATERIAPRIMA=%s
+        WHERE mp.IDMATERIAPRIMA = %s
     ''', (idmateriaprima,))
     materia = cur.fetchone()
 
-    # Diccionario de factores de conversión inversa
-    factores_reversa = {
-        1: (1, 'Kilogramos'),
-        2: (1, 'Litros'),
-        3: (1, 'Mililitros'),
-        4: (1000, 'Gramos'),
-        5: (1000000, 'Miligramos')
-    }
+    if not materia:
+        flash("❌ Materia prima no encontrada", "danger")
+        cur.close()
+        return redirect(url_for('materiaPrima'))
 
-    factor, unidad_nombre = factores_reversa.get(int(materia['IDUNIDAD']), (1, ''))
-    cantidadum_mostrar = materia['CANTIDADUM'] * factor
+    # ===== Convertir de unidad base a mostrar =====
+    if int(materia['IDUNIDAD']) in [3, 4, 5]:  # unidades pequeñas (ml, g, mg)
+        cantidadum_mostrar = float(materia['CANTIDADUM']) * 1000
+    else:  # unidades grandes (L, kg)
+        cantidadum_mostrar = float(materia['CANTIDADUM'])
 
-    # Ajuste singular/plural
+    # Ajuste singular/plural de la unidad
+    unidad_nombre = materia['UNIDAD']
     if cantidadum_mostrar == 1 and unidad_nombre.endswith('s'):
         unidad_nombre = unidad_nombre[:-1]
 
@@ -1744,10 +3016,18 @@ def editar_materia(idmateriaprima):
         unidades=unidades
     )
 
-
 #Eliminar MateriaPrima
 @app.route('/materiaPrima/eliminar_materia/<int:idmateriaprima>',methods=['GET'])
 def eliminar_materia(idmateriaprima):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     #Creamos instancia BD
     cur = mysql.connection.cursor()
 
@@ -1767,6 +3047,15 @@ def eliminar_materia(idmateriaprima):
 #Nuevo servicio
 @app.route('/servicios', methods=['GET', 'POST'])
 def servicios():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST' and 'nombre' in request.form:
         #Capturamos los datos
         nombre = request.form['nombre']
@@ -1811,6 +3100,15 @@ def servicios():
 #Editar Servicios
 @app.route('/servicios/editar_servicios/<int:idservicio>', methods=['GET', 'POST'])
 def editar_servicios(idservicio):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST':
         #Recuperar nuevos datos
         nombre = request.form['nombre']
@@ -1842,6 +3140,15 @@ def editar_servicios(idservicio):
 #Eliminar Servicios
 @app.route('/servicios/eliminar_servicios/<int:idservicio>')
 def eliminar_servicios(idservicio):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     cur = mysql.connection.cursor()
     cur.execute('DELETE FROM SERVICIOPEDIDO WHERE IDSERVICIO = %s', (idservicio,))
     mysql.connection.commit()
@@ -1852,6 +3159,15 @@ def eliminar_servicios(idservicio):
 #Nuevo Estatus
 @app.route('/estatus', methods=['GET', 'POST'])
 def estatus():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+    
     if request.method == 'POST':
         #Capturamos los datos del form
         nombre = request.form['nombre']
@@ -1896,6 +3212,15 @@ def estatus():
 #Editar Estatus
 @app.route('/estatus/editar_estatus/<int:idestatus>', methods=['GET', 'POST'])
 def editar_estatus(idestatus):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST':
         #Capturamos los nuevos valores
         nombre = request.form['nombre']
@@ -1927,6 +3252,15 @@ def editar_estatus(idestatus):
 #Eliminar Estatus
 @app.route('/estatus/eliminar_estatus/<int:idestatus>')
 def eliminar_estatus(idestatus):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     cur = mysql.connection.cursor()
     cur.execute('DELETE FROM ESTATUSPEDIDO WHERE IDESTATUS = %s', (idestatus,))
     mysql.connection.commit()
@@ -1938,6 +3272,15 @@ def eliminar_estatus(idestatus):
 #Nueva Unidad de Medida
 @app.route('/unidadesMedidas', methods=['GET', 'POST'])
 def unidadesMedidas():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST' and 'nombre' in request.form:
         #Capturamos los datos del FORM
         nombre = request.form['nombre']
@@ -1984,6 +3327,15 @@ def unidadesMedidas():
 #Editar Unidad de Medida
 @app.route('/unidadesMedidas/editar_unidad/<int:idunidad>', methods=['GET', 'POST'])
 def editar_unidad(idunidad):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     if request.method == 'POST':
         #Capturar los datos del FORM
         nombre = request.form['nombre']
@@ -2014,6 +3366,15 @@ def editar_unidad(idunidad):
 #Eliminar Medida de Unidad
 @app.route('/unidadesMedidas/eliminar_unidad/<int:idunidad>')
 def eliminar_unidad(idunidad):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     cur = mysql.connection.cursor()
     cur.execute('DELETE FROM UNIDADESMEDIDA WHERE IDUNIDAD = %s', (idunidad,))
     mysql.connection.commit()
@@ -2022,10 +3383,34 @@ def eliminar_unidad(idunidad):
 
     return redirect(url_for('unidadesMedidas'))
 
-#Función Loggout
+#Función Loggout HTML
 @app.route('/loggoutAdmin')
 def loggout():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
     return render_template('administrador/loggoutAdmin.html')
+
+#Función Loggout
+@app.route('/cerrar_sesion')
+def cerrar_sesion():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    session.clear()
+    flash("✅ Sesión cerrada correctamente", "success")
+    return redirect(url_for('index'))
 
 
 
@@ -2035,17 +3420,253 @@ def loggout():
 #Función Mis Pedidos
 @app.route('/misPedidos')
 def misPedidos():
-    return render_template('cliente/misPedidos.html')
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol cliente
+    if session.get('rol') != 2:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    user_id = session.get('id')
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cur.execute("""
+        SELECT p.IDPEDIDO, p.FECHAENTREGA, e.NOMESTATUS
+        FROM PEDIDOS p
+        JOIN ESTATUSPEDIDO e ON p.IDESTATUS = e.IDESTATUS
+        WHERE p.IDUSER = %s
+        ORDER BY p.IDPEDIDO DESC
+    """, (user_id,))
+    pedidos = cur.fetchall()
+    cur.close()
+    return render_template('cliente/misPedidos.html', pedidos=pedidos)
+
+# Detalles Pedido (Cliente)
+@app.route('/detalle_pedido/<int:idpedido>')
+def detalle_pedido(idpedido):
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 2:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    try:
+        # Verifica sesión activa
+        if not session.get('logueado'):
+            return jsonify({"success": False, "message": "No autorizado"}), 401
+
+        user_id = session['id']
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+        # Info general del pedido (solo si pertenece al usuario logueado)
+        cur.execute("""
+            SELECT p.IDPEDIDO, p.FECHAENTREGA, p.IDSERVICIO, e.NOMESTATUS AS ESTATUS,
+                s.NOMSERVICIO, CONCAT(u.NOMBRE,' ',u.APATERNO) AS CLIENTE
+            FROM PEDIDOS p
+            INNER JOIN ESTATUSPEDIDO e ON p.IDESTATUS = e.IDESTATUS
+            INNER JOIN SERVICIOPEDIDO s ON p.IDSERVICIO = s.IDSERVICIO
+            INNER JOIN USUARIO u ON p.IDUSER = u.IDUSER
+            WHERE p.IDPEDIDO = %s AND p.IDUSER = %s
+        """, (idpedido, user_id))
+        pedido = cur.fetchone()
+        if not pedido:
+            return jsonify({"success": False, "message": "Pedido no encontrado"}), 404
+
+        # Detalle de prendas (idéntico al de /pedidos/detalles)
+        cur.execute("""
+            SELECT c.NOMBREPRENDA AS nombre, d.CANTIDAD AS cantidad, 
+                d.PESO AS peso, cat.PRECIOKG AS precio_x_kg
+            FROM PEDIDOS_HAS_CATALOGODETALLE d
+            INNER JOIN CATALOGOPRENDAS c ON d.IDCATALOGO = c.IDCATALOGO
+            INNER JOIN CATEGORIAPRENDAS cat ON c.IDCATEGORIA = cat.IDCATEGORIA
+            WHERE d.IDPEDIDO = %s
+        """, (idpedido,))
+        prendas = cur.fetchall()
+
+        # Totales
+        total_peso = sum(float(p['peso']) for p in prendas)
+        total_costo = sum(float(p['peso']) * float(p['precio_x_kg']) for p in prendas)
+
+        # Costo adicional del servicio
+        cur.execute("SELECT COSTO_KG FROM SERVICIOPEDIDO WHERE IDSERVICIO = %s", (pedido['IDSERVICIO'],))
+        servicio = cur.fetchone()
+        if servicio:
+            total_costo += total_peso * float(servicio['COSTO_KG'])
+
+        cur.close()
+
+        # Mismo formato JSON que la ruta original
+        return jsonify({
+            "success": True,
+            "idpedido": pedido['IDPEDIDO'],
+            "cliente": pedido['CLIENTE'],
+            "fecha_entrega": str(pedido['FECHAENTREGA']),
+            "estatus": pedido['ESTATUS'],
+            "servicio": pedido['NOMSERVICIO'],
+            "prendas": prendas,
+            "peso_total": total_peso,
+            "costo_total": total_costo
+        })
+
+    except Exception as e:
+        print(f"❌ Error en /detalle_pedido/{idpedido}: {e}")
+        return jsonify({
+            "success": False,
+            "message": "Error al obtener detalles del pedido",
+            "error": str(e)
+        }), 500
+
+#Buscar por ID o Fecha
+@app.route('/buscar_mispedidos')
+def buscar_mispedidos():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 2:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    termino = request.args.get('q', '')
+    user_id = session['id']
+    cur = mysql.connection.cursor()
+    query = """
+        SELECT p.IDPEDIDO, p.FECHAENTREGA, e.NOMESTATUS
+        FROM PEDIDOS p
+        JOIN ESTATUSPEDIDO e ON p.IDESTATUS = e.IDESTATUS
+        WHERE p.IDUSER = %s AND (p.IDPEDIDO LIKE %s OR p.FECHAENTREGA LIKE %s)
+        ORDER BY p.IDPEDIDO DESC
+    """
+    like_term = f"%{termino}%"
+    cur.execute(query, (user_id, like_term, like_term))
+    resultados = cur.fetchall()
+    cur.close()
+    return jsonify([dict(zip([key[0] for key in cur.description], row)) for row in resultados])
 
 #Función Actualizar Datos
-@app.route('/actualizarDatos')
+@app.route('/actualizarDatos', methods=['GET', 'POST'])
 def actualizarDatos():
-    return render_template('cliente/actualizarDatos.html')
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
 
-#Función Loggout
+    # Verificar rol administrador
+    if session.get('rol') != 2:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        apellido = request.form.get('apellido')
+        correo = request.form.get('correo')
+
+        cur.execute(
+            'UPDATE USUARIO SET NOMBRE=%s, APATERNO=%s, CORREO=%s WHERE IDUSER=%s',
+            (nombre, apellido, correo, iduser)
+        )
+        mysql.connection.commit()
+        cur.close()
+
+        flash("✅ Datos actualizados correctamente", "success")
+        return redirect(url_for('misPedidos'))
+
+    # Mostrar datos actuales
+    cur.execute('SELECT IDUSER, NOMBRE, APATERNO, CORREO FROM USUARIO WHERE IDUSER=%s', (iduser,))
+    usuario = cur.fetchone()
+    cur.close()
+    return render_template('cliente/actualizarDatos.html', usuario=usuario)
+
+#Actualizar contraseña
+@app.route('/actualizar_contrasena', methods=['POST'])
+def actualizar_contrasena():
+    iduser = session.get('id')
+    if not iduser:
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    actual = request.form.get('actual')
+    nueva = request.form.get('nueva')
+
+    if not actual or not nueva:
+        flash("⚠️ Debes ingresar ambos campos", "warning")
+        return redirect(url_for('actualizarDatos'))
+
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cur.execute('SELECT PASS FROM USUARIO WHERE IDUSER = %s', (iduser,))
+    row = cur.fetchone()
+
+    if not row:
+        flash("❌ Usuario no encontrado", "danger")
+        cur.close()
+        return redirect(url_for('actualizarDatos'))
+
+    pass_actual = row['PASS']
+
+    # Verificar si la contraseña actual es correcta
+    if actual != pass_actual:
+        flash("❌ La contraseña actual es incorrecta", "danger")
+        cur.close()
+        return redirect(url_for('actualizarDatos'))
+
+    # Evitar que la nueva contraseña sea igual a la actual
+    if nueva == pass_actual:
+        flash("⚠️ La nueva contraseña no puede ser igual a la anterior", "danger")
+        cur.close()
+        return redirect(url_for('actualizarDatos'))
+
+    # Actualizar contraseña en texto plano
+    cur.execute('UPDATE USUARIO SET PASS = %s WHERE IDUSER = %s', (nueva, iduser))
+    mysql.connection.commit()
+    cur.close()
+
+    flash("✅ Contraseña actualizada correctamente", "success")
+    return redirect(url_for('misPedidos'))
+
+#Función Loggout HTML
 @app.route('/loggoutCliente')
 def loggoutCliente():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 2:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
     return render_template('cliente/loggoutCliente.html')
+
+#Funcion Loggout Final
+@app.route('/cerrar_sesion_cliente')
+def cerrar_sesion_cliente():
+    # Protección de Ruta
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    # Verificar rol administrador
+    if session.get('rol') != 2:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    session.clear()
+    flash("✅ Sesión cerrada correctamente", "success")
+    return redirect(url_for('index'))
+
+
+# Cierre de sesión por rutas restringidas
+#Función Loggout
+@app.route('/cerrar_sesion_restringidas')
+def cerrar_sesion_restringidas():
+    session.clear()
+    flash("🚫 Acceso no autorizado. La sesión fue cerrada.")
+    return redirect(url_for('index'))
 
 
 #Redireccionar si el usuario busca una página no existente

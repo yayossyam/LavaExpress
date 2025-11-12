@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a LavaExpress</title>
+
+    <!-- Aquí Flask insertará el CSS en texto -->
+    <style>
+        {{ css_contenido | safe }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {% if logo_b64 %}
+                <img src="data:image/png;base64,{{ logo_b64 }}" alt="LavaExpress Logo">
+            {% else %}
+                <img src="https://i.imgur.com/mZpAaIY.png" alt="LavaExpress Logo">
+            {% endif %}
+            <h2>¡Bienvenido a <span>LavaExpress</span>!</h2>
+        </div>
+
+        <div class="content">
+            <p>Hola <b>{{ nombre_usuario }}</b>,<br><br>
+            Tu registro fue <b>exitoso</b>. 🎉<br>
+            ¡Gracias por formar parte de <b>LavaExpress</b>!</p>
+
+            <p>Ahora puedes ingresar a nuestra plataforma para visualizar tus pedidos de lavado y dar seguimiento fácilmente.</p>
+        </div>
+
+        <!--
+        <div class="button-container">
+            <a href="https://lavaexpress.com" class="button">Ir a LavaExpress</a>
+        </div>
+        -->
+
+        <div class="footer">
+            <p>Este es un mensaje automático, por favor no respondas.<br>© 2025 LavaExpress</p>
+        </div>
+    </div>
+</body>
+</html>

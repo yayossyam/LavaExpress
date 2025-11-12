@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Actualización de Pedido LavaExpress</title>
+    <style>
+        {{ css_contenido | safe }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {% if logo_b64 %}
+                <img src="data:image/png;base64,{{ logo_b64 }}" alt="LavaExpress Logo">
+            {% else %}
+                <img src="https://i.imgur.com/mZpAaIY.png" alt="LavaExpress Logo">
+            {% endif %}
+            <h2>Pedido #{{ idpedido }}</h2>
+        </div>
+
+        <div class="content">
+            <p>Hola <b>{{ nombre_usuario }}</b>,</p>
+
+            {% if estatus %}
+                <p>Tu pedido ha cambiado de estado a: <span class="status">{{ estatus }}</span></p>
+            {% else %}
+                <p>Tu pedido ha sido registrado exitosamente en <b>LavaExpress</b>.</p>
+            {% endif %}
+
+            <p><b>📅 Fecha de entrega:</b> {{ fecha_entrega }}</p>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Prenda</th>
+                        <th>Cantidad</th>
+                        <th>Peso (kg)</th>
+                        <th>Precio/kg</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in prendas %}
+                    <tr>
+                        <td>{{ p.NOMBREPRENDA }}</td>
+                        <td>{{ p.CANTIDAD }}</td>
+                        <td>{{ "%.2f"|format(p.PESO) }}</td>
+                        <td>${{ "%.2f"|format(p.PRECIO_X_KG) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <p class="totals"><b>Peso total:</b> {{ "%.2f"|format(peso_total) }} kg</p>
+            <p class="totals"><b>Costo total:</b> ${{ "%.2f"|format(costo_total) }}</p>
+
+            {% if estatus == "En preparación" %}
+                <p>🧺 Tu pedido ha comenzado a prepararse. Pronto estará listo.</p>
+            {% elif estatus == "Listo" %}
+                <p>✅ Tu pedido está listo para ser recogido o entregado.</p>
+            {% endif %}
+        </div>
+
+        <div class="footer">
+            <p>Gracias por confiar en LavaExpress.<br>
+            © 2025 LavaExpress</p>
+        </div>
+    </div>
+</body>
+</html>

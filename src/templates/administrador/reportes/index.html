@@ -61,25 +61,25 @@
                     <p class="subtitulo">Selecciona el Reporte a Generar</p>
 
                     <div class="reportes-container">
-                        <form action="#">
+                        <form action="{{url_for('reportes_ventas')}}">
                             <button type="submit" class="btn-reporte">
                                 <img src="{{ url_for('static', filename='img/administrador/reportes/reporteVentas.jpeg') }}" class="btn-icono">
                                 <span>REPORTE DE VENTAS</span>
                             </button>
                         </form>
-                        <form action="#">
+                        <form action="{{url_for('reportes_inventario')}}">
                             <button type="submit" class="btn-reporte">
                                 <img src="{{ url_for('static', filename='img/administrador/reportes/reporteInventario.jpeg') }}" class="btn-icono">
                                 <span>REPORTE DE INVENTARIO</span>
                             </button>
                         </form>
-                        <form action="#">
+                        <form action="{{url_for('reportes_reabastecimiento')}}">
                             <button type="submit" class="btn-reporte">
                                 <img src="{{ url_for('static', filename='img/administrador/reportes/reporteReabastecimiento.jpeg') }}" class="btn-icono">
                                 <span>REPORTE DE REABASTECIMIENTO</span>
                             </button>
                         </form>
-                        <form action="#">
+                        <form action="{{url_for('reportes_tickets')}}">
                             <button type="submit" class="btn-reporte">
                                 <img src="{{ url_for('static', filename='img/administrador/reportes/reporteTickets.jpeg') }}" class="btn-icono">
                                 <span>REPORTE DE TICKETS</span>

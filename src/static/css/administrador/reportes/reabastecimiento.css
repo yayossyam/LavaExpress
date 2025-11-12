@@ -145,7 +145,7 @@ body {
 
 /* === BLOQUE DE REPORTES === */
 .reportes-config {
-    background: var(--color-bg); /* Café */
+    background: var(--color-bg);
     border-radius: var(--radius);
     padding: 20px;
     text-align: center;
@@ -155,7 +155,7 @@ body {
     font-family: 'Fredoka One', cursive;
     font-size: 1.8rem;
     color: var(--color-blue);
-    background-color: var(--color-bg); /* Café */
+    background-color: var(--color-bg);
     padding: 15px 0;
     border-radius: var(--radius) var(--radius) 0 0;
     margin-bottom: 10px;
@@ -164,113 +164,171 @@ body {
 .subtitulo {
     font-size: 1.5rem;
     margin-bottom: 25px;
-    background-color: var(--color-bg); /* fondo café */
+    background-color: var(--color-bg);
     color: var(--color-blue);
     padding: 10px 0;
     border-radius: var(--radius);
     font-weight: bold;
 }
 
-/* === BOTONES DE REPORTES === */
-.reportes-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columnas por fila */
-    gap: 20px;
-    justify-items: center;
+/* === FORMULARIO DE FECHAS === */
+.fechas-row {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 20px;
 }
 
-.btn-reporte {
-    background-color: var(--color-blue); /* Café oscuro para los botones */
-    color: #fff;
-    border: none;
-    border-radius: var(--radius);
-    padding: 20px 30px;
-    font-size: 16px;
+.campo-fecha {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.campo-fecha label {
+    margin-bottom: 8px;
     font-weight: 600;
-    cursor: pointer;
-    width: 220px;
-    transition: all 0.3s;
-
-    display: flex;           /* Alineación fila */
-    flex-direction: row;     /* Imagen izquierda, texto derecha */
-    align-items: center;     /* Centrado vertical */
-    justify-content: center; /* Centrado horizontal */
-    gap: 10px;               /* Espacio entre imagen y texto */
+    color: var(--color-darkblue);
 }
 
-.btn-reporte:hover {
-    background-color: var(--color-darkblue);
-    transform: scale(1.05);
+input[type="date"] {
+    background-color: #fff;
+    border: 2px solid var(--color-blue);
+    border-radius: var(--radius);
+    color: var(--color-darkblue);
+    padding: 10px 15px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 8px rgba(43, 134, 192, 0.15);
 }
 
-.btn-icono {
-    width: 30px;   /* Tamaño de la imagen */
-    height: 30px;
-    object-fit: contain;
+input[type="date"]:focus {
+    outline: none;
+    border-color: var(--color-darkblue);
+    box-shadow: 0 0 10px rgba(47, 95, 176, 0.3);
 }
 
-/* === BOTÓN REGRESAR === */
-.btn-back-container {
-    margin-top: 30px;
+/* BOTÓN GENERAR REPORTE */
+.btn-generar-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
 }
 
 .btn-back {
-    background-color: #5dade2;
-    color: white;
-    padding: 12px 30px;
+    background: linear-gradient(145deg, var(--color-blue), var(--color-darkblue));
+    color: #fff;
+    border: none;
     border-radius: var(--radius);
-    font-weight: 600;
+    padding: 14px 40px;
     font-size: 16px;
-    text-decoration: none;
-    display: inline-block;
-    transition: all 0.3s;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 12px rgba(47, 95, 176, 0.3);
 }
 
 .btn-back:hover {
-    background-color: #2f5fb0;
+    transform: translateY(-2px);
+    background: linear-gradient(145deg, var(--color-darkblue), #1b4f8a);
+    box-shadow: 0 8px 18px rgba(47, 95, 176, 0.4);
 }
 
-
-/* === TABLA DE VENTAS === */
-.table-container {
-    margin-top: 30px;
-    overflow-x: auto;
-    border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+.btn-back:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(47, 95, 176, 0.4);
 }
 
+/* === BLOQUE DE RESUMEN DE REPORTE === */
+.resumen-reporte {
+    background-color: #fff;
+    border-radius: var(--radius);
+    padding: 20px 30px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    font-size: 1.1rem;
+    color: var(--color-darkblue);
+}
+
+.resumen-reporte strong {
+    color: var(--color-blue);
+    font-size: 1.2rem;
+}
+
+/* === TABLA DE RESULTADOS === */
 .table-ventas {
     width: 100%;
     border-collapse: collapse;
     background: #fff;
-    border-radius: 12px;
+    border-radius: var(--radius);
     overflow: hidden;
     font-family: 'Nunito', sans-serif;
+    box-shadow: var(--shadow);
 }
 
 .table-ventas thead {
-    background-color: #2b86c0;
+    background: linear-gradient(135deg, var(--color-blue), var(--color-darkblue));
     color: #fff;
-    text-align: center;
     font-weight: 700;
+    text-align: center;
 }
 
 .table-ventas th, .table-ventas td {
     padding: 12px 15px;
-    border-bottom: 1px solid #e0e0e0;
     text-align: center;
-}
-
-.table-ventas tbody tr {
-    transition: all 0.3s;
+    transition: all 0.3s ease;
 }
 
 .table-ventas tbody tr:hover {
-    background-color: #f0f8ff;
+    background-color: #e0f0ff;
+    transform: scale(1.01);
 }
 
-.table-ventas tbody td:nth-child(8) {
-    font-weight: 600;
-    color: #2f5fb0;
+.table-ventas tbody td {
+    font-weight: 500;
+    color: var(--color-darkblue);
 }
 
+.table-ventas tbody tr.table-info {
+    background-color: #d6e9ff;
+    font-weight: 700;
+    color: var(--color-blue);
+}
+
+/* === BOTONES VOLVER Y EXPORTAR === */
+.btn-volver, .btn-exportar {
+    font-weight: 700;
+    font-size: 16px;
+    padding: 12px 25px;
+    border-radius: var(--radius);
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+.btn-volver {
+    background: linear-gradient(145deg, #6c757d, #5a6268);
+}
+
+.btn-volver:hover {
+    background: linear-gradient(145deg, #5a6268, #495057);
+    transform: translateY(-2px) scale(1.05);
+}
+
+.btn-exportar {
+    background: linear-gradient(145deg, var(--color-blue), var(--color-darkblue));
+}
+
+.btn-exportar:hover {
+    background: linear-gradient(145deg, var(--color-darkblue), #1b4f8a);
+    transform: translateY(-2px) scale(1.05);
+}

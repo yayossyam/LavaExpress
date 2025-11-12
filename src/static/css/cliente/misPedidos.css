@@ -286,3 +286,94 @@ body {
         width: 100%;
     }
 }
+
+/* Botones Ver Detalles */
+.btn-detalles {
+    background-color: var(--color-blue);
+    color: white;
+    border: 2px solid var(--color-darkblue);
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-detalles:hover {
+    background-color: var(--color-darkblue);
+}
+
+/* Modal */
+.modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    background-color: var(--color-blue);
+    color: #fff;
+    font-family: 'Fredoka One', cursive;
+}
+
+.modal-body table th {
+    background-color: #eaf4fc;
+    color: var(--color-blue);
+    font-weight: 700;
+    text-align: center;
+}
+
+.modal-body table td {
+    text-align: center;
+}
+
+.modal-footer button {
+    border-radius: 8px;
+}
+
+.btn-detalles {
+    background-color: var(--color-blue);
+    color: white;
+    border: 2px solid var(--color-darkblue);
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-detalles:hover {
+    background-color: var(--color-darkblue);
+}
+
+/* Botón “Ver Detalles” */
+.btn-detalles {
+    border: 2px solid #2b86c0;
+    background-color: #fff;
+    color: #2b86c0;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-detalles:hover {
+    background-color: #2b86c0;
+    color: #fff;
+}
+
+/* Modal ajustes */
+#modalDetalles .modal-content {
+    border-radius: 12px;
+    border: 2px solid #2b86c0;
+}
+
+#modalDetalles .modal-header {
+    background-color: #2b86c0;
+    color: #fff;
+    border-bottom: 2px solid #1f5a8a;
+}
+
+#modalDetalles .modal-footer {
+    border-top: 2px solid #1f5a8a;
+}

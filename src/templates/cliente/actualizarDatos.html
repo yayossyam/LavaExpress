@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,9 +18,9 @@
             </div>
             <nav class="menu">
                 <ul>
-                    <li><a href="#">Mis Pedidos</a></li>
-                    <li><a href="#" class="active">Actualizar datos</a></li>
-                    <li><a href="#">Cerrar Sesión</a></li>
+                    <li><a href="{{ url_for('misPedidos') }}">Mis Pedidos</a></li>
+                    <li><a href="{{ url_for('actualizarDatos') }}" class="active">Actualizar datos</a></li>
+                    <li><a href="{{url_for('loggoutCliente')}}">Cerrar Sesión</a></li>
                 </ul>
             </nav>
         </aside>
@@ -41,10 +41,19 @@
 
             <!-- CUERPO PRINCIPAL -->
             <main class="content">
-
                 <div class="update-container">
+                <!--ALERTAS-->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
 
-                    <!-- TITULO -->
                     <h2>Actualización de Datos</h2>
 
                     <!-- BOTONES DE SECCIÓN -->
@@ -54,37 +63,39 @@
                     </div>
 
                     <!-- FORMULARIO DATOS PERSONALES -->
-                    <div class="form-section" id="form-personales">
+                    <form id="form-personales" class="form-section" method="POST" action="{{ url_for('actualizarDatos') }}">
                         <label for="nombre">Nombre:</label>
-                        <input type="text" id="nombre" placeholder="Tu nombre">
+                        <input type="text" id="nombre" name="nombre" placeholder="Tu nombre"
+                            value="{{ usuario.NOMBRE }}" required>
 
                         <label for="apellido">Apellido Paterno:</label>
-                        <input type="text" id="apellido" placeholder="Tu apellido">
+                        <input type="text" id="apellido" name="apellido" placeholder="Tu apellido"
+                            value="{{ usuario.APATERNO }}" required>
 
                         <label for="correo">Correo Electrónico:</label>
-                        <input type="email" id="correo" placeholder="Tu correo">
+                        <input type="email" id="correo" name="correo" placeholder="Tu correo"
+                            value="{{ usuario.CORREO }}" required>
 
-                        <button class="btn btn-primary btn-update">Actualizar</button>
-                    </div>
+                        <button type="submit" class="btn btn-primary btn-update">Actualizar</button>
+                    </form>
 
                     <!-- FORMULARIO CONTRASEÑA -->
-                    <div class="form-section" id="form-contrasena" style="display:none;">
+                    <form id="form-contrasena" class="form-section" style="display:none;" method="POST" action="{{ url_for('actualizar_contrasena') }}">
                         <label for="actual">Contraseña Actual:</label>
-                        <input type="password" id="actual" placeholder="Contraseña actual">
+                        <input type="password" id="actual" name="actual" placeholder="Tu contraseña actual" required>
 
                         <label for="nueva">Nueva Contraseña:</label>
-                        <input type="password" id="nueva" placeholder="Nueva contraseña">
+                        <input type="password" id="nueva" name="nueva" placeholder="Nueva contraseña" required>
 
-                        <button class="btn btn-primary btn-update">Actualizar</button>
-                    </div>
+                        <button type="submit" class="btn btn-primary btn-update">Actualizar</button>
+                    </form>
 
                 </div>
-
             </main>
         </div>
     </div>
 
-    <!--Importar el JS-->
     <script src="{{ url_for('static', filename='js/cliente/actualizarDatos.js')}}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
