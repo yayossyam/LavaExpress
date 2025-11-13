@@ -69,7 +69,7 @@
 
                         <!-- Nuevo Nombre -->
                         <label for="nombre">Nuevo Nombre:</label>
-                        <input type="text" name="nombre" id="nombre" placeholder="Ingrese el nuevo nombre" required>
+                        <input type="text" name="nombre" id="nombre" value="{{ materia.NOMBREMATERIAPRIMA }}" placeholder="Ingrese el nuevo nombre" required>
 
 
                         <!-- Mostrar Cantidad Actual -->
@@ -78,7 +78,7 @@
 
                         <!-- Nueva Cantidad -->
                         <label for="cantidad">Nueva Cantidad:</label>
-                        <input type="text" name="cantidad" id="cantidad" placeholder="Ingrese la nueva cantidad" required>
+                        <input type="text" name="cantidad" id="cantidad" value="{{ materia.CANTIDAD }}" placeholder="Ingrese la nueva cantidad" required>
 
 
                         <!-- Mostrar Unidad de Medida Actual-->
@@ -100,7 +100,7 @@
 
                         <!-- Nuevo Stock -->
                         <label for="stock">Nuevo Stock Mínimo:</label>
-                        <input type="text" name="stock" id="stock" placeholder="Ingrese el nuevo stock mínimo" required>
+                        <input type="text" name="stock" id="stock" value="{{ materia.STOCKMINIMO }}" placeholder="Ingrese el nuevo stock mínimo" required>
 
                         <!-- Mostrar Cantidad Unidad Medida Actual-->
                         <label for="cantidadum_actual">Cantidad de la unidad de medida actual:</label>
@@ -108,7 +108,7 @@
 
                         <!-- Nuevo Cantidad Unidad Medida -->
                         <label for="cantidadum">Nueva Cantidad de la unidad de medida:</label>
-                        <input type="text" name="cantidadum" id="cantidadum" placeholder="Ingrese el nuevo valor" required>
+                        <input type="text" name="cantidadum" id="cantidadum" value="{{ materia.CANTIDADUM_MOSTRAR }}" placeholder="Ingrese el nuevo valor" required>
 
 
 

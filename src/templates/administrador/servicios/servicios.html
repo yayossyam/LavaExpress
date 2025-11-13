@@ -123,16 +123,18 @@
     </div>
 
     <!-- MODAL DE CONFIRMACION DE ELIMINAR -->
+    <!-- Modal Eliminar Servicio -->
     <div id="modalEliminar" class="modal">
         <div class="modal-content">
             <h3>🗑️Eliminar Tipo de Servicio</h3>
             <p>¿Estás seguro de eliminar este tipo de servicio?</p>
             <div class="buttons">
-                <button class="btn-confirm" id="btnConfirmarEliminar">Sí, eliminar</button>
-                <button class="btn-cancel" onclick="cerrarModalEliminar()">Cancelar</button>
+                <button id="btnEliminarConfirm" class="btn-confirm">Sí, eliminar</button>
+                <button id="btnEliminarCancel" class="btn-cancel">Cancelar</button>
             </div>
         </div>
     </div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/administrador/servicios.js') }}"></script>

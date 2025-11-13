@@ -158,14 +158,16 @@ body {
     height: calc(100vh - 200px);
 }
 
-/* === CARTA DE EDICIÓN === */
+/* === CARTA DE EDICIÓN (MENOS ANCHA) === */
 .edit-card {
     background: #fff;
     border-radius: var(--radius);
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     padding: 30px;
-    max-width: 500px;
-    margin: 0 auto;
+    width: 80%;           /* ancho adecuado */
+    max-width: 700px;     /* no demasiado grande en pantallas grandes */
+    margin: 0 auto;       /* centrado horizontal */
+    box-sizing: border-box;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -198,10 +200,12 @@ body {
     box-shadow: 0 0 8px rgba(43, 134, 192, 0.3);
 }
 
+/* === BOTONES JUNTOS Y CENTRADOS === */
 .register-form .buttons {
     display: flex;
-    justify-content: space-between;
-    gap: 10px;
+    justify-content: center;  /* centrados horizontalmente */
+    gap: 15px;                /* espacio entre botones */
+    margin-top: 10px;
 }
 
 .register-form .btn-primary {

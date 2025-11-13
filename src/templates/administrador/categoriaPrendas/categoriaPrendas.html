@@ -126,12 +126,15 @@
     <!-- MODAL DE CONFIRMACIÓN DE ELIMINAR -->
     <div id="modalEliminar" class="modal">
         <div class="modal-content">
-            <h3>🗑️Eliminar Categoria Prenda</h3>
-            <p>¿Estás seguro de eliminar esta categoría prenda?</p>
-            <button class="btn-confirm" id="btnConfirmarEliminar">Sí, eliminar</button>
-            <button class="btn-cancel" onclick="cerrarModalEliminar()">Cancelar</button>
+            <h3>🗑️Eliminar Categoría de Prenda</h3>
+            <p>¿Estás seguro de eliminar esta categoría?</p>
+            <div class="buttons">
+                <button id="btnConfirmarEliminar" class="btn-confirm">Sí, eliminar</button>
+                <button class="btn-cancel" onclick="cerrarModalEliminar()">Cancelar</button>
+            </div>
         </div>
     </div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/administrador/categoriaPrendas.js') }}"></script>

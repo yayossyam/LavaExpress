@@ -68,7 +68,7 @@
 
                         <!-- Nuevo nombre editable -->
                         <label for="nombre">Nuevo Nombre:</label>
-                        <input type="text" id="nombre" name="nombre" placeholder="Ingrese el nuevo nombre" required>
+                        <input type="text" id="nombre" name="nombre" value="{{ proveedor.NOMBREPROVEEDOR }}" placeholder="Ingrese el nuevo nombre" required>
 
                         <!-- Correo actual (solo lectura) -->
                         <label for="correo_actual">Correo Actual:</label>
@@ -76,7 +76,7 @@
 
                         <!-- Nuevo correo editable -->
                         <label for="correo">Nuevo Correo:</label>
-                        <input type="text" id="correo" name="correo" placeholder="Ingrese el nuevo correo" required>
+                        <input type="text" id="correo" name="correo" value="{{ proveedor.CORREO }}" placeholder="Ingrese el nuevo correo" required>
 
                         <!-- Telefono actual (solo lectura) -->
                         <label for="telefono_actual">Telefono Actual:</label>
@@ -84,7 +84,7 @@
 
                         <!-- Nuevo nombre editable -->
                         <label for="telefono">Nuevo Telefono:</label>
-                        <input type="text" id="telefono" name="telefono" placeholder="Ingrese el nuevo telefono" required>
+                        <input type="text" id="telefono" name="telefono" value="{{ proveedor.TELEFONO }}" placeholder="Ingrese el nuevo telefono" required>
 
                         <div class="buttons">
                             <button type="submit" class="btn btn-primary">Actualizar</button>

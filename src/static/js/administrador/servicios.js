@@ -1,23 +1,36 @@
-//Creamos variable global
-let idServicioEliminar = null;
+// Variables globales
+let servicioAEliminar = null;
 
-//Abrir modal para confirmar eliminación
+// Abrir modal
 function abrirModalEliminar(id) {
-    idServicioEliminar = id;
-    const modal = document.getElementById('modalEliminar')
-    modal.classList.add('show');
+    servicioAEliminar = id;
+    const modal = document.getElementById("modalEliminar");
+    modal.style.display = "flex"; // Mostramos el modal
 }
 
-//Cerrar modal para confirmar eliminaciín
+// Cerrar modal
 function cerrarModalEliminar() {
-    const modal = document.getElementById('modalEliminar');
-    modal.classList.remove('show');
-    idServicioEliminar = null;
+    const modal = document.getElementById("modalEliminar");
+    modal.style.display = "none"; // Ocultamos
+    servicioAEliminar = null;
 }
 
-//Confirmación de eliminación
-document.getElementById('btnConfirmarEliminar').addEventListener('click', function() {
-    if (idServicioEliminar) {
-        window.location.href = `/servicios/eliminar_servicios/${idServicioEliminar}`;
+// Confirmar eliminación
+document.getElementById("btnEliminarConfirm").addEventListener("click", function() {
+    if (servicioAEliminar !== null) {
+        window.location.href = "/servicios/eliminar_servicios/" + servicioAEliminar;
+    }
+});
+
+// Cancelar eliminación
+document.getElementById("btnEliminarCancel").addEventListener("click", function() {
+    cerrarModalEliminar();
+});
+
+// Cerrar modal al hacer click fuera del contenido
+window.addEventListener("click", function(event) {
+    const modal = document.getElementById("modalEliminar");
+    if (event.target === modal) {
+        cerrarModalEliminar();
     }
 });

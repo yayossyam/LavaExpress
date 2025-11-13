@@ -1,35 +1,33 @@
-// Variable Global para almacenar temporalmente el ID a eliminar
+// Variable global
 let rolAEliminar = null;
 
-// Función que muestra el modal (ventana emergente). Guarda el ID a eliminar
-// Tiene como parametros el ID a eliminar
+// Mostrar modal
 function confirmarEliminar(id) {
-    rolAEliminar = id; //Se guarda el ID a eliminar
-    const modal = document.getElementById("confirmModal"); //Obtenemos el modal
-    modal.style.display = "flex"; // Mostramos el modal (flex lo centra en pantalla)
-    return false; // Evita que el enlace original (<a href="#">) se ejecute y recargue la página
+    rolAEliminar = id;
+    const modal = document.getElementById('modalEliminar');
+    modal.classList.add('show');
+    return false; // evita recargar
 }
 
-// Botón "Sí"
-document.getElementById("btnConfirm").addEventListener("click", function() {
-    if (rolAEliminar !== null) { //Verifica que haya seleccionado un rol
-
-        //Redigirge a la ruta de eliminacion en app.py
-        window.location.href = "/roles/eliminar/" + rolAEliminar; 
+// Confirmar eliminación
+document.getElementById('btnConfirm').addEventListener('click', function() {
+    if (rolAEliminar !== null) {
+        window.location.href = "/roles/eliminar/" + rolAEliminar;
     }
 });
 
-// Botón "Cancelar"
-document.getElementById("btnCancel").addEventListener("click", function() {
-    document.getElementById("confirmModal").style.display = "none";
+// Cancelar
+document.getElementById('btnCancel').addEventListener('click', function() {
+    const modal = document.getElementById('modalEliminar');
+    modal.classList.remove('show');
     rolAEliminar = null;
 });
 
-// Cerrar modal al dar click fuera de la ventana
-window.addEventListener("click", function(event) {
-    const modal = document.getElementById("confirmModal");
+// Cerrar modal al hacer clic fuera
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('modalEliminar');
     if (event.target === modal) {
-        modal.style.display = "none"; // Se quita el modal
-        rolAEliminar = null; // Limpia la variable
+        modal.classList.remove('show');
+        rolAEliminar = null;
     }
 });

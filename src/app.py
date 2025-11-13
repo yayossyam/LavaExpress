@@ -412,15 +412,20 @@ def eliminar_usuarios(idusuario):
     
     # Evitar que el administrador se elimine a sí mismo
     if idusuario == session.get('id'):
-        flash("⚠️ No puedes eliminar tu propio usuario.", "error")
+        flash("⚠️ No puedes eliminar tu propio usuario.", "danger")
         return redirect(url_for('verUsuarios'))
 
-    cur = mysql.connection.cursor()
-    cur.execute('DELETE FROM USUARIO WHERE IDUSER = %s', (idusuario,))
-    mysql.connection.commit()
-    cur.close()
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute('DELETE FROM USUARIO WHERE IDUSER = %s', (idusuario,))
+        mysql.connection.commit()
+        cur.close()
 
-    flash("✅ Usuario eliminado correctamente", "success")
+        flash("✅ Usuario eliminado correctamente", "success")
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash("⚠️ No se puede eliminar el usuario porque tiene registros relacionados.", "danger")
 
     return redirect(url_for('verUsuarios'))
 
@@ -1067,19 +1072,28 @@ def cambioEstadoPedido():
 
                     # Obtener prendas del pedido
                     cur.execute("""
-                                SELECT cd.IDCATALOGO, cp.NOMBREPRENDA, cd.CANTIDAD, cd.PESO, cd.PRECIO_X_KG
+                                SELECT cp.NOMBREPRENDA, cd.CANTIDAD, cd.PESO, cat.PRECIOKG AS PRECIO_X_KG
                                 FROM PEDIDOS_HAS_CATALOGODETALLE cd
                                 JOIN CATALOGOPRENDAS cp ON cd.IDCATALOGO = cp.IDCATALOGO
+                                JOIN CATEGORIAPRENDAS cat ON cp.IDCATEGORIA = cat.IDCATEGORIA
                                 WHERE cd.IDPEDIDO = %s
                                 """, (id_pedido,))
-                    prendas = cur.fetchall()
+                    prendas_raw = cur.fetchall()
 
-                    # Obtener Estatus
-                    estatus_texto = None
+                    # Mapear prendas para el template
+                    prendas = []
+                    for p in prendas_raw:
+                        prendas.append({
+                            "NOMBREPRENDA": p['NOMBREPRENDA'],
+                            "CANTIDAD": int(p['CANTIDAD']) if float(p['CANTIDAD']).is_integer() else float(p['CANTIDAD']),
+                            "PESO": float(p['PESO']),
+                            "PRECIO_X_KG": float(p['PRECIO_X_KG'])
+                        })
+                    
+                    # Obtener Estatus como texto
                     cur.execute("SELECT NOMESTATUS FROM ESTATUSPEDIDO WHERE IDESTATUS = %s", (nuevo_estatus,))
                     estatus_info = cur.fetchone()
-                    if estatus_info:
-                        estatus_texto = estatus_info['NOMESTATUS']
+                    estatus_texto = estatus_info['NOMESTATUS'] if estatus_info else "Actualizado"
                     
                     enviar_correo_cambio_estatus(
                         correo_destino=correo_destino,
@@ -1091,6 +1105,7 @@ def cambioEstadoPedido():
                         peso_total=total_peso,
                         costo_total=total_costo
                     )
+
             except Exception as mail_error:
                 print(f"⚠️ Error enviando correo de cambio de estatus: {mail_error}")
             
@@ -1258,11 +1273,17 @@ def eliminar_proveedor(idproveedor):
     if session.get('rol') != 1:
         return redirect(url_for('cerrar_sesion_restringidas'))
 
-    cur = mysql.connection.cursor()
-    cur.execute('DELETE FROM PROVEEDORES WHERE IDPROVEEDOR = %s', (idproveedor,))
-    mysql.connection.commit()
-    cur.close()
-    flash('✅ Proveedor eliminado correctamente','success')
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute('DELETE FROM PROVEEDORES WHERE IDPROVEEDOR = %s', (idproveedor,))
+        mysql.connection.commit()
+        cur.close()
+        flash('✅ Proveedor eliminado correctamente','success')
+    
+    except Exception as e:
+        mysql.connection.rollback()
+        flash("⚠️ No se puede eliminar el proveedor porque tiene registros relacionados.", "danger")
+
     return redirect(url_for('proveedores'))
 
 # Compra Materia Prima
@@ -1445,6 +1466,7 @@ def catalogoProductos():
                         c.NOMBRE AS categoria,
                         m.NOMBREMATERIAPRIMA AS nombre_producto,
                         m.CANTIDAD AS existencia,
+                        m.CANTIDADUM AS cantidad_um,
                         u.NOMBRE AS unidad,
                         ca.DESCPORCARGA AS por_carga
                     FROM CARGAS ca
@@ -1458,11 +1480,26 @@ def catalogoProductos():
     #Convertimos la lista en diccionario legible para Jinja2
     lista_productos = [] #Definimos un arreglo
     for p in productos: #Obtenemos cada dato de productos con un arreglo
+
+        unidad_nombre = p['unidad']
+        cantidad_um = p['cantidad_um']
+
+        # Si la unidad es mililitros o miligramos, convertir a 1000x
+        if unidad_nombre.lower() in ['mililitros', 'miligramos']:
+            cantidad_um = cantidad_um * 1000
+
+        
+        # Quitar decimales innecesarios (mostrar 1 en vez de 1.00)
+        if cantidad_um == int(cantidad_um):
+            cantidad_um = int(cantidad_um)
+
+        unidad_completa = f"{cantidad_um:g} {unidad_nombre}" 
+
         lista_productos.append({
             'categoria': p['categoria'],
             'nombre': p['nombre_producto'],
             'existencia': p['existencia'],
-            'unidad': p['unidad'],
+            'unidad': unidad_completa,
             'por_carga':p['por_carga']
         })
 
@@ -1563,7 +1600,7 @@ def editar_categoria(idcategoria):
     
     #Si es GET, solo mostramos los datos a actualizar
     cur = mysql.connection.cursor()
-    cur.execute('SELECT IDCATEGORIA, NOMBRE FROM CATEGORIAPRENDAS WHERE IDCATEGORIA = %s', (idcategoria,))
+    cur.execute('SELECT IDCATEGORIA, NOMBRE, KGMAXIMO, PRECIOKG FROM CATEGORIAPRENDAS WHERE IDCATEGORIA = %s', (idcategoria,))
     categoria = cur.fetchone()
     cur.close()
     
@@ -1581,12 +1618,18 @@ def eliminar_categoria(idcategoria):
     if session.get('rol') != 1:
         return redirect(url_for('cerrar_sesion_restringidas'))
 
-    cur = mysql.connection.cursor()
-    cur.execute('DELETE FROM CATEGORIAPRENDAS WHERE IDCATEGORIA = %s', (idcategoria,))
-    mysql.connection.commit()
-    cur.close()
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute('DELETE FROM CATEGORIAPRENDAS WHERE IDCATEGORIA = %s', (idcategoria,))
+        mysql.connection.commit()
+        cur.close()
 
-    flash("✅ Categoría eliminada correctamente", "success")
+        flash("✅ Categoría eliminada correctamente", "success")
+    
+    except Exception as e:
+        mysql.connection.rollback()
+        flash("⚠️ No se puede eliminar la categoria de prenda porque tiene registros relacionados.", "danger")
+    
     return redirect(url_for('categoriaPrendas'))
 
 #Nueva Prenda
@@ -1724,11 +1767,15 @@ def eliminar_prenda(idcatalogo):
     if session.get('rol') != 1:
         return redirect(url_for('cerrar_sesion_restringidas'))
 
-    cur = mysql.connection.cursor()
-    cur.execute('DELETE FROM CATALOGOPRENDAS WHERE IDCATALOGO = %s',(idcatalogo,))
-    mysql.connection.commit()
-    cur.close()
-    flash("✅ Prenda eliminada correctamente", "success")
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute('DELETE FROM CATALOGOPRENDAS WHERE IDCATALOGO = %s',(idcatalogo,))
+        mysql.connection.commit()
+        cur.close()
+        flash("✅ Prenda eliminada correctamente", "success")
+    except Exception as e:
+        mysql.connection.rollback()
+        flash("⚠️ No se puede eliminar la prenda porque tiene registros relacionados.", "danger")
 
     return redirect(url_for('catalogoPrendas'))
 
@@ -2828,11 +2875,17 @@ def eliminar_rol(idrol):
     if session.get('rol') != 1:
         return redirect(url_for('cerrar_sesion_restringidas'))
 
-    cur = mysql.connection.cursor()
-    cur.execute('DELETE FROM ROLES WHERE IDROL=%s', (idrol,))
-    mysql.connection.commit()
-    cur.close()
-    flash("✅ Rol eliminado correctamente", "success")
+    try:    
+        cur = mysql.connection.cursor()
+        cur.execute('DELETE FROM ROLES WHERE IDROL=%s', (idrol,))
+        mysql.connection.commit()
+        cur.close()
+        flash("✅ Rol eliminado correctamente", "success")
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash("⚠️ No se puede eliminar el tipo de rol porque tiene registros relacionados.", "danger")
+
     return redirect(url_for('roles'))
 
 # ===== Conversión de cantidad a unidad base según dígitos =====
@@ -3028,20 +3081,25 @@ def eliminar_materia(idmateriaprima):
     if session.get('rol') != 1:
         return redirect(url_for('cerrar_sesion_restringidas'))
 
-    #Creamos instancia BD
-    cur = mysql.connection.cursor()
+    try:
+        #Creamos instancia BD
+        cur = mysql.connection.cursor()
+        #Ejecutamos DELETE
+        cur.execute('DELETE FROM MATERIAPRIMA WHERE IDMATERIAPRIMA=%s',(idmateriaprima,))
 
-    #Ejecutamos DELETE
-    cur.execute('DELETE FROM MATERIAPRIMA WHERE IDMATERIAPRIMA=%s',(idmateriaprima,))
+        #Guardamos sentencia en la bd
+        mysql.connection.commit()
+        
+        #Cerramos BD
+        cur.close()
 
-    #Guardamos sentencia en la bd
-    mysql.connection.commit()
+        #Mensaje Exito
+        flash("✅ Materia Prima eliminada correctamente", "success")
     
-    #Cerramos BD
-    cur.close()
+    except Exception as e:
+        mysql.connection.rollback()
+        flash("⚠️ No se puede eliminar la materia prima porque tiene registros relacionados.", "danger")
 
-    #Mensaje Exito
-    flash("✅ Materia Prima eliminada correctamente", "success")
     return redirect(url_for('materiaPrima'))
 
 #Nuevo servicio
@@ -3149,11 +3207,17 @@ def eliminar_servicios(idservicio):
     if session.get('rol') != 1:
         return redirect(url_for('cerrar_sesion_restringidas'))
 
-    cur = mysql.connection.cursor()
-    cur.execute('DELETE FROM SERVICIOPEDIDO WHERE IDSERVICIO = %s', (idservicio,))
-    mysql.connection.commit()
-    cur.close()
-    flash("✅ Tipo de servicio eliminado correctamente", "success")
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute('DELETE FROM SERVICIOPEDIDO WHERE IDSERVICIO = %s', (idservicio,))
+        mysql.connection.commit()
+        cur.close()
+        flash("✅ Tipo de servicio eliminado correctamente", "success")
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash("⚠️ No se puede eliminar el tipo de servicio porque tiene registros relacionados.", "danger")
+
     return redirect(url_for('servicios'))
 
 #Nuevo Estatus
@@ -3261,11 +3325,16 @@ def eliminar_estatus(idestatus):
     if session.get('rol') != 1:
         return redirect(url_for('cerrar_sesion_restringidas'))
 
-    cur = mysql.connection.cursor()
-    cur.execute('DELETE FROM ESTATUSPEDIDO WHERE IDESTATUS = %s', (idestatus,))
-    mysql.connection.commit()
-    cur.close()
-    flash("✅ Tipo de estatus eliminado correctamente", "success")
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute('DELETE FROM ESTATUSPEDIDO WHERE IDESTATUS = %s', (idestatus,))
+        mysql.connection.commit()
+        cur.close()
+        flash("✅ Tipo de estatus eliminado correctamente", "success")
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash("⚠️ No se puede eliminar el estatus porque tiene registros relacionados.", "danger")
 
     return redirect(url_for('estatus'))
 
@@ -3375,11 +3444,25 @@ def eliminar_unidad(idunidad):
     if session.get('rol') != 1:
         return redirect(url_for('cerrar_sesion_restringidas'))
 
-    cur = mysql.connection.cursor()
-    cur.execute('DELETE FROM UNIDADESMEDIDA WHERE IDUNIDAD = %s', (idunidad,))
-    mysql.connection.commit()
-    cur.close()
-    flash("✅ Unidad de medida eliminado correctamente", "success")
+    try:
+        cur = mysql.connection.cursor()
+
+        # Verificar si la unidad está siendo usada en materiaprima
+        cur.execute("SELECT COUNT(*) FROM materiaprima WHERE IDUNIDAD = %s", (idunidad,))
+        usada = cur.fetchone()
+
+        if usada > 0:
+            flash("❌ ⚠️ No se puede eliminar la unidad de medida porque tiene registros relacionados.", "danger")
+            return redirect(url_for('unidadesMedidas'))  # Redirige a donde muestras la lista de unidades
+
+        cur.execute('DELETE FROM UNIDADESMEDIDA WHERE IDUNIDAD = %s', (idunidad,))
+        mysql.connection.commit()
+        cur.close()
+        flash("✅ Unidad de medida eliminado correctamente", "success")
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash("⚠️ No se puede eliminar la unidad de medida porque tiene registros relacionados.", "danger")
 
     return redirect(url_for('unidadesMedidas'))
 
@@ -3559,6 +3642,8 @@ def actualizarDatos():
     # Verificar rol administrador
     if session.get('rol') != 2:
         return redirect(url_for('cerrar_sesion_restringidas'))
+    
+    iduser = session.get('id')
 
     cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
@@ -3581,6 +3666,7 @@ def actualizarDatos():
     cur.execute('SELECT IDUSER, NOMBRE, APATERNO, CORREO FROM USUARIO WHERE IDUSER=%s', (iduser,))
     usuario = cur.fetchone()
     cur.close()
+    
     return render_template('cliente/actualizarDatos.html', usuario=usuario)
 
 #Actualizar contraseña

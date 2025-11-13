@@ -65,13 +65,13 @@
                         <label for="nombre_actual">Nombre actual:</label>
                         <input type="text" id="nombre_actual" value="{{ usuario.NOMBRE }}" readonly>
                         <label for="nombre_nuevo">Nuevo nombre:</label>
-                        <input type="text" name="nombre" id="nombre" placeholder="Ingrese nuevo nombre" required>
+                        <input type="text" name="nombre" id="nombre" value="{{ usuario.NOMBRE }}" placeholder="Ingrese nuevo nombre" required>
 
                         <!-- Apellido -->
                         <label for="apellido_actual">Apellido actual:</label>
                         <input type="text" id="apellido_actual" value="{{ usuario.APATERNO }}" readonly>
                         <label for="apellido_nuevo">Nuevo apellido:</label>
-                        <input type="text" name="apellido" id="apellido" placeholder="Ingrese nuevo apellido" required>
+                        <input type="text" name="apellido" id="apellido" value="{{ usuario.APATERNO }}"  placeholder="Ingrese nuevo apellido" required>
 
                         <!-- Rol -->
                         <label for="rol_actual">Rol actual:</label>
