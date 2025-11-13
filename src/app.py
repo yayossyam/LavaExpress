@@ -2975,7 +2975,11 @@ def materiaPrima():
     # Solo manejamos 1 dígito (L o kg) y 3 dígitos (ml o g)
     for m in materias:
         cantidad_base = float(m['CANTIDADUM'])
-        if int(m['IDUNIDAD']) in [3, 4, 5]:  # unidades pequeñas que se ingresan con 3 dígitos
+
+        # Usar el nombre real de la unidad
+        unidad_nombre = m['UNIDAD'].lower()
+
+        if unidad_nombre in ['gramos', 'miligramos', 'mililitros']:
             m['CANTIDADUM_MOSTRAR'] = cantidad_base * 1000
         else:  # unidades grandes que se ingresan con 1 dígito
             m['CANTIDADUM_MOSTRAR'] = cantidad_base
