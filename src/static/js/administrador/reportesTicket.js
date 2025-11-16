@@ -5,13 +5,53 @@ document.addEventListener("DOMContentLoaded", () => {
     const fechaFinal = document.getElementById("fechaFinal");
     const btnExportar = document.getElementById("btn-exportar-pdf");
 
-    // --- Configurar fechas mínimas y validaciones ---
+    // =====================================================
+    // ACORDEÓN NUEVO (ticket-header)
+    // =====================================================
+    const headers = document.querySelectorAll(".ticket-header");
+
+    headers.forEach(header => {
+        const contenido = header.nextElementSibling; // el div .contenido-ticket
+
+        if (!contenido) return;
+
+        // Ocultar al inicio
+        contenido.style.display = "none";
+
+        header.addEventListener("click", () => {
+
+            const visible = contenido.style.display === "block";
+
+            // Cerrar todos los demás
+            document.querySelectorAll(".contenido-ticket").forEach(c => c.style.display = "none");
+
+            // Abrir/cerrar el actual
+            contenido.style.display = visible ? "none" : "block";
+        });
+    });
+
+    // =====================================================
+    // FORMATO DE FECHA A dd/mm/yyyy SOLO VISUAL
+    // =====================================================
+    document.querySelectorAll(".ticket-date").forEach(span => {
+        let fechaISO = span.dataset.date; // yyyy-mm-dd
+
+        if (!fechaISO) return;
+
+        const [y, m, d] = fechaISO.split("-");
+        const fechaFormateada = `${d}/${m}/${y}`;
+
+        span.textContent = fechaFormateada;
+    });
+
+    // =====================================================
+    // VALIDACIONES DE FECHAS (TAL COMO LO TENÍAS)
+    // =====================================================
     if (fechaInicio && fechaFinal) {
         const minDate = "2020-01-01";
         fechaInicio.setAttribute("min", minDate);
         fechaFinal.setAttribute("min", minDate);
 
-        // La fecha final no puede ser anterior a la inicial
         fechaInicio.addEventListener("change", () => {
             fechaFinal.min = fechaInicio.value;
         });
@@ -23,7 +63,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        // Limpiar campos al recargar o volver atrás
         window.addEventListener("pageshow", (event) => {
             const navType = performance.getEntriesByType("navigation")[0]?.type;
             if (event.persisted || navType === "back_forward" || navType === "reload") {
@@ -33,18 +72,18 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- Exportar a PDF ---
+    // =====================================================
+    // EXPORTAR A PDF (NO MODIFICADO)
+    // =====================================================
     if (btnExportar) {
         btnExportar.addEventListener("click", () => {
             let inicio, final;
 
-            // Intentar obtener fechas de inputs del formulario
             if (fechaInicio && fechaFinal) {
                 inicio = fechaInicio.value;
                 final = fechaFinal.value;
             }
 
-            // Si no hay fechas en los inputs, usar las del dataset del botón
             if (!inicio || !final) {
                 inicio = btnExportar.dataset.fechaInicio;
                 final = btnExportar.dataset.fechaFinal;
@@ -57,7 +96,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             console.log(`🧾 Generando PDF de ${inicio} a ${final}...`);
 
-            // Redirigir a la ruta de Flask para generar PDF
             window.location.href = `/exportar_reporte_tickets?fecha_inicio=${inicio}&fecha_final=${final}`;
         });
     }

@@ -72,6 +72,7 @@
                             <tr>
                                 <th>ID del Pedido</th>
                                 <th>Nombre del Cliente</th>
+                                <th>Fecha del Pedido</th>
                                 <th>Estado del Pedido</th>
                                 <th>Acción</th>
                             </tr>
@@ -82,6 +83,7 @@
                                 <tr>
                                     <td><strong>{{ pedido.IDPEDIDO }}</strong></td>
                                     <td>{{ pedido.NOMBRECLIENTE }}</td>
+                                    <td>{{ pedido.FECHAENTREGA.strftime('%d/%m/%Y') if pedido.FECHAENTREGA else '-' }}</td>
                                     <td>
                                         {% if pedido.IDESTATUS == 3 %}
                                             <input type="text" value="{{ pedido.NOMESTATUS }}" readonly class="form-control">

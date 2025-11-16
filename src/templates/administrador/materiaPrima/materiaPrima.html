@@ -87,7 +87,7 @@
                                 {% for materia in materias %}
                                 <tr>
                                     <td>{{ materia.NOMBREMATERIAPRIMA }}</td>
-                                    <td>{{ materia.CANTIDADUM_MOSTRAR|int}} {{ materia.UNIDAD }}</td>
+                                    <td>{{ materia.CANTIDADUM_MOSTRAR}} {{ materia.UNIDAD }}</td>
                                     <td>{{ materia.CANTIDAD}}</td>
                                     <td>
                                         <button class="btn-edit" onclick="window.location.href='{{ url_for('editar_materia', idmateriaprima=materia.IDMATERIAPRIMA) }}'">✏️</button>
@@ -107,7 +107,7 @@
                             <input type="text" id="nombre" name="nombre" placeholder="Nombre de la materia prima">
 
                             <label for="cantidadum">Cantidad de la unidad:</label>
-                            <input type="number" id="cantidadum" name="cantidadum" placeholder="Ej: 600 ml, 500 gr, 1 Lt" required>
+                            <input type="number" id="cantidadum" name="cantidadum" step="0.01" placeholder="Ej: 1 Litro, 1 Kilogramo, ..." required>
 
 
                             <label for="unidad">Unidad de medida:</label>

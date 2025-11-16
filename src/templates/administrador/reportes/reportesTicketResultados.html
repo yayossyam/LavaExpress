@@ -54,61 +54,74 @@
 
                 {% if pedidos_detalles %}
                     {% for pd in pedidos_detalles %}
-                    <div class="pedido-detalle mb-5 p-3 rounded shadow-sm">
-                        <h4 class="text-primary mb-3">Detalles Pedido #{{ pd.pedido.IDPEDIDO }}</h4>
-                        
-                        <!-- TABLA DE DATOS DEL PEDIDO -->
-                        <table class="table table-bordered info-table mb-4">
-                            <tbody>
-                                <tr>
-                                    <th>Cliente</th>
-                                    <td>{{ pd.pedido.CLIENTE }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Fecha de entrega</th>
-                                    <td>{{ pd.pedido.FECHAENTREGA }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Estatus</th>
-                                    <td>{{ pd.pedido.ESTATUS }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Servicio</th>
-                                    <td>{{ pd.pedido.SERVICIO }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="pedido-detalle mb-4 p-3 rounded shadow-sm">
 
-                        {% if pd.prendas %}
-                        <!-- TABLA DE PRENDAS -->
-                        <table class="table table-bordered prendas-table">
-                            <thead>
-                                <tr>
-                                    <th>Prenda</th>
-                                    <th>Cantidad</th>
-                                    <th>Peso (kg)</th>
-                                    <th>Precio x kg</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for pr in pd.prendas %}
-                                <tr>
-                                    <td>{{ pr.categoria }}</td>
-                                    <td>{{ "%.2f"|format(pr.cantidad) }}</td>
-                                    <td>{{ "%.2f"|format(pr.peso) }}</td>
-                                    <td>${{ "%.2f"|format(pr.precio_x_kg) }}</td>
-                                </tr>
-                                {% endfor %}
-                                <tr class="total-row">
-                                    <td colspan="2" class="text-end"><strong>Totales:</strong></td>
-                                    <td>{{ "%.2f"|format(pd.total_peso) }}</td>
-                                    <td>${{ "%.2f"|format(pd.total_costo) }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        {% else %}
-                        <p>⚠️ No se encontraron prendas para este pedido.</p>
-                        {% endif %}
+                        <!-- Título clickeable -->
+                        <div class="ticket-header" onclick="toggleContenido(this)">
+                            <div class="ticket-left">
+                                <span class="ticket-icon">🏷️</span>
+                                <span class="ticket-title">Ticket #{{ pd.pedido.IDPEDIDO }}</span>
+                            </div>
+                            <span class="ticket-date" data-date="{{ pd.pedido.FECHAENTREGA }}">
+                                {{ pd.pedido.FECHAENTREGA }}
+                            </span>
+                        </div>
+
+
+                        <!-- 🔽 Contenido ocultable -->
+                        <div class="contenido-ticket mt-3">
+
+                            <!-- TABLA DE DATOS DEL PEDIDO -->
+                            <table class="table table-bordered info-table mb-4">
+                                <tbody>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <td>{{ pd.pedido.CLIENTE }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Fecha de entrega</th>
+                                        <td>{{ pd.pedido.FECHAENTREGA }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Estatus</th>
+                                        <td>{{ pd.pedido.ESTATUS }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Servicio</th>
+                                        <td>{{ pd.pedido.SERVICIO }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            {% if pd.prendas %}
+                            <table class="table table-bordered prendas-table">
+                                <thead>
+                                    <tr>
+                                        <th>Prenda</th>
+                                        <th>Cantidad</th>
+                                        <th>Peso (kg)</th>
+                                        <th>Precio x kg</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pr in pd.prendas %}
+                                    <tr>
+                                        <td>{{ pr.prenda }}</td>
+                                        <td>{{ "%.2f"|format(pr.cantidad) }}</td>
+                                        <td>{{ "%.2f"|format(pr.peso) }}</td>
+                                        <td>${{ "%.2f"|format(pr.precio_x_kg) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    <tr class="total-row">
+                                        <td colspan="2" class="text-end"><strong>Totales:</strong></td>
+                                        <td>{{ "%.2f"|format(pd.total_peso) }}</td>
+                                        <td>${{ "%.2f"|format(pd.total_costo) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            {% endif %}
+                        </div>
+
                     </div>
                     {% endfor %}
                 {% else %}

@@ -451,7 +451,7 @@ def pedidos():
         INNER JOIN ESTATUSPEDIDO e ON p.IDESTATUS = e.IDESTATUS
         INNER JOIN SERVICIOPEDIDO s ON p.IDSERVICIO = s.IDSERVICIO
         INNER JOIN USUARIO u ON p.IDUSER = u.IDUSER
-        ORDER BY p.IDPEDIDO ASC
+        ORDER BY p.FECHAENTREGA DESC
     """)
     pedidos_raw = cur.fetchall()
 
@@ -1482,18 +1482,12 @@ def catalogoProductos():
     for p in productos: #Obtenemos cada dato de productos con un arreglo
 
         unidad_nombre = p['unidad']
-        cantidad_um = p['cantidad_um']
+        cantidad_um = Decimal(str(p['cantidad_um'])).normalize()
 
-        # Si la unidad es mililitros o miligramos, convertir a 1000x
-        if unidad_nombre.lower() in ['mililitros', 'miligramos']:
-            cantidad_um = cantidad_um * 1000
+        # Evitar notación científica (1E+1, etc.)
+        cantidad_um = format(cantidad_um, 'f')
 
-        
-        # Quitar decimales innecesarios (mostrar 1 en vez de 1.00)
-        if cantidad_um == int(cantidad_um):
-            cantidad_um = int(cantidad_um)
-
-        unidad_completa = f"{cantidad_um:g} {unidad_nombre}" 
+        unidad_completa = f"{cantidad_um} {unidad_nombre}"
 
         lista_productos.append({
             'categoria': p['categoria'],
@@ -1698,6 +1692,7 @@ def catalogoPrendas():
         SELECT p.IDCATALOGO, p.NOMBREPRENDA AS nombre, c.NOMBRE AS categoria, c.PRECIOKG AS precio_categoria
         FROM CATALOGOPRENDAS p
         LEFT JOIN CATEGORIAPRENDAS c ON p.IDCATEGORIA = c.IDCATEGORIA
+        ORDER BY c.NOMBRE ASC, p.NOMBREPRENDA ASC
     ''')
     prendas = cur.fetchall()
 
@@ -2137,7 +2132,7 @@ def reportes_ventas():
                             INNER JOIN SERVICIOPEDIDO sp ON p.IDSERVICIO = sp.IDSERVICIO
                             INNER JOIN ESTATUSPEDIDO e ON p.IDESTATUS = e.IDESTATUS
                             WHERE p.FECHAENTREGA BETWEEN %s AND %s AND p.IDESTATUS = 3
-                            ORDER BY p.FECHAENTREGA DESC""", (fecha_inicio, fecha_final))
+                            ORDER BY p.FECHAENTREGA ASC""", (fecha_inicio, fecha_final))
             
             ventas = cur.fetchall()
             cur.close()
@@ -2280,6 +2275,7 @@ def reportes_reabastecimiento():
                 u.NOMBRE AS UNIDAD
             FROM MATERIAPRIMA m
             LEFT JOIN UNIDADESMEDIDA u ON m.IDUNIDAD = u.IDUNIDAD
+            WHERE m.CANTIDAD < m.STOCKMINIMO
             ORDER BY m.NOMBREMATERIAPRIMA
         """)
         inventario = cur.fetchall()
@@ -2336,6 +2332,7 @@ def exportar_reporte_reabastecimiento():
                 u.NOMBRE AS UNIDAD
             FROM MATERIAPRIMA m
             INNER JOIN UNIDADESMEDIDA u ON m.IDUNIDAD = u.IDUNIDAD
+            WHERE m.CANTIDAD < m.STOCKMINIMO
             ORDER BY m.NOMBREMATERIAPRIMA
         """)
         inventario = cur.fetchall()
@@ -2589,21 +2586,22 @@ def reportes_tickets():
                 INNER JOIN SERVICIOPEDIDO sp ON p.IDSERVICIO = sp.IDSERVICIO
                 INNER JOIN ESTATUSPEDIDO e ON p.IDESTATUS = e.IDESTATUS
                 WHERE p.FECHAENTREGA BETWEEN %s AND %s
-                ORDER BY p.FECHAENTREGA DESC
+                ORDER BY p.FECHAENTREGA ASC
             """, (fecha_inicio, fecha_final))
             tickets = cur.fetchall()
 
             # Para cada ticket, traer prendas
             for t in tickets:
                 cur.execute("""
-                    SELECT cat.NOMBRE AS categoria,
+                    SELECT c.NOMBREPRENDA AS prenda,
                         d.CANTIDAD AS cantidad,
                         d.PESO AS peso,
                         cat.PRECIOKG AS precio_x_kg
                     FROM PEDIDOS_HAS_CATALOGODETALLE d
-                    INNER JOIN CATEGORIAPRENDAS cat ON d.IDCATALOGO = cat.IDCATEGORIA
+                    INNER JOIN CATALOGOPRENDAS c ON d.IDCATALOGO = c.IDCATALOGO
+                    INNER JOIN CATEGORIAPRENDAS cat ON c.IDCATEGORIA = cat.IDCATEGORIA
                     WHERE d.IDPEDIDO = %s
-                    ORDER BY cat.NOMBRE
+                    ORDER BY c.NOMBREPRENDA
                 """, (t['IDPEDIDO'],))
                 prendas = cur.fetchall()
 
@@ -2891,15 +2889,21 @@ def eliminar_rol(idrol):
 # ===== Conversión de cantidad a unidad base según dígitos =====
 def convertir_a_unidad_base(cantidad):
     cantidad_str = str(cantidad).strip()
-    if len(cantidad_str) == 3:
-        # 3 dígitos → mililitros o gramos → dividir entre 1000
-        cantidad_base = float(cantidad_str) / 1000
-    elif len(cantidad_str) == 1:
-        # 1 dígito → litros o kilogramos → mantener igual
-        cantidad_base = float(cantidad_str)
-    else:
-        raise ValueError("Solo se permiten cantidades de 1 o 3 dígitos")
-    return cantidad_base
+
+    # Si viene algo como "1.0", "1.00", "1.000" → convertir a entero
+    cantidad_str = str(cantidad).strip()
+
+    try:
+        cantidad_float = float(cantidad_str)
+
+        # Si es entero lo convierte de 1.0 a 1
+        if cantidad_float.is_integer():
+            return int(cantidad_float)
+        
+        # Si tiene decimales, se respeta
+        return cantidad_float
+    except:
+        raise ValueError("Cantidad inválida.")
 
 # NUEVA MATERIA PRIMA
 @app.route('/materiaPrima', methods=['GET', 'POST'])
@@ -2922,7 +2926,7 @@ def materiaPrima():
         cantidadinput = request.form['cantidadum'].strip()
 
         try:
-            # Convertimos a unidad base usando solo dígitos 1 o 3
+            # Convertir a base (solo litros / kg)
             cantidadum = convertir_a_unidad_base(cantidadinput)
         except ValueError as e:
             flash(f"❌ {e}", "danger")
@@ -2971,18 +2975,9 @@ def materiaPrima():
     ''')
     materias = cur.fetchall()
 
-    # Convertir de unidad base a mostrar (simplemente multiplicar si quieres revertir)
-    # Solo manejamos 1 dígito (L o kg) y 3 dígitos (ml o g)
+    # Mostrar la cantidad tal cual (litros/kg)
     for m in materias:
-        cantidad_base = float(m['CANTIDADUM'])
-
-        # Usar el nombre real de la unidad
-        unidad_nombre = m['UNIDAD'].lower()
-
-        if unidad_nombre in ['gramos', 'miligramos', 'mililitros']:
-            m['CANTIDADUM_MOSTRAR'] = cantidad_base * 1000
-        else:  # unidades grandes que se ingresan con 1 dígito
-            m['CANTIDADUM_MOSTRAR'] = cantidad_base
+        m['CANTIDADUM_MOSTRAR'] = f"{float(m['CANTIDADUM']):.1f}"
 
     # Obtener unidades disponibles para el select
     cur.execute('SELECT IDUNIDAD, NOMBRE FROM UNIDADESMEDIDA')
@@ -3048,19 +3043,9 @@ def editar_materia(idmateriaprima):
         cur.close()
         return redirect(url_for('materiaPrima'))
 
-    # ===== Convertir de unidad base a mostrar =====
-    if int(materia['IDUNIDAD']) in [3, 4, 5]:  # unidades pequeñas (ml, g, mg)
-        cantidadum_mostrar = float(materia['CANTIDADUM']) * 1000
-    else:  # unidades grandes (L, kg)
-        cantidadum_mostrar = float(materia['CANTIDADUM'])
-
-    # Ajuste singular/plural de la unidad
-    unidad_nombre = materia['UNIDAD']
-    if cantidadum_mostrar == 1 and unidad_nombre.endswith('s'):
-        unidad_nombre = unidad_nombre[:-1]
-
-    materia['CANTIDADUM_MOSTRAR'] = cantidadum_mostrar
-    materia['UNIDAD_MOSTRAR'] = unidad_nombre
+    # ================= Mostrar cantidad tal cual =================
+    materia['CANTIDADUM_MOSTRAR'] = float(materia['CANTIDADUM'])
+    materia['UNIDAD_MOSTRAR'] = materia['UNIDAD']
 
     # Obtener unidades disponibles
     cur.execute('SELECT IDUNIDAD, NOMBRE FROM UNIDADESMEDIDA')

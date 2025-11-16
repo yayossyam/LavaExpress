@@ -66,10 +66,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             item.addEventListener('click', () => {
                 input.value = nombreCompleto;
+
+                // === CORRECCIÓN ===
                 const partes = nombreCompleto.split(' ');
-                input.dataset.nombreBase = partes[0];
-                input.dataset.cantidadUm = partes[1]; // la cantidad de unidad
-                input.dataset.unidad = partes.slice(2).join(' '); // la unidad completa
+
+                const cantidadUM = partes[partes.length - 2];   // antepenúltimo
+                const unidad = partes[partes.length - 1];       // último
+                const nombreBase = partes.slice(0, partes.length - 2).join(' '); // todo lo anterior
+
+                input.dataset.nombreBase = nombreBase;
+                input.dataset.cantidadUm = cantidadUM;
+                input.dataset.unidad = unidad;
+                // === FIN CORRECCIÓN ===
+
                 sugerenciasBox.style.display = 'none';
             });
 
