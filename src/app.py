@@ -1184,6 +1184,14 @@ def proveedores():
         #Creamos instancia en la BD para generar consultas
         cur = mysql.connection.cursor()
 
+        # Verificar si el correo ya existe
+        cur.execute('SELECT COUNT(*) AS count FROM PROVEEDORES WHERE CORREO = %s', (correo,))
+        result = cur.fetchone()
+        if result['count'] > 0:
+            flash("❌ El correo ingresado ya existe", "danger")
+            cur.close()
+            return redirect(url_for('proveedores'))
+
         #Obtener el ultimo ID insertado en la BD
         cur.execute('SELECT MAX(IDPROVEEDOR) AS max_id FROM PROVEEDORES')
         result = cur.fetchone()
@@ -1652,6 +1660,18 @@ def catalogoPrendas():
             
             #Creamos intancia BD
             cur = mysql.connection.cursor()
+
+            # Verificar si ya existe prenda con el mismo nombre y categoría
+            cur.execute('''
+                SELECT COUNT(*) AS count 
+                FROM CATALOGOPRENDAS 
+                WHERE NOMBREPRENDA = %s AND IDCATEGORIA = %s
+            ''', (nombre, idcategoria))
+            result = cur.fetchone()
+            if result['count'] > 0:
+                flash("❌ Ya existe una prenda con el mismo nombre en esta categoría", "danger")
+                cur.close()
+                return redirect(url_for('catalogoPrendas'))
 
             #Obtener ID
             cur.execute('SELECT MAX(IDCATALOGO) AS max_id FROM CATALOGOPRENDAS')
