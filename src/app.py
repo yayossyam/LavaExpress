@@ -2802,6 +2802,15 @@ def roles():
         #Creamos nuevo cursor de bd. objeto que permitirá realizar CRUD en la BD
         cur = mysql.connection.cursor()
 
+        # Verificamos si el nombre ya existe
+        cur.execute('SELECT * FROM ROLES WHERE NOMROL = %s', (nombre,))
+        rol_existente = cur.fetchone()
+
+        if rol_existente:
+            flash("❌ El nombre del rol ya existe", "danger")
+            cur.close()
+            return redirect(url_for('roles'))
+
         #Obtener el ultimo ID de USUARIO
 
         cur.execute('SELECT MAX(IDROL) AS max_id FROM ROLES') 
@@ -3454,23 +3463,27 @@ def eliminar_unidad(idunidad):
         return redirect(url_for('cerrar_sesion_restringidas'))
 
     try:
-        cur = mysql.connection.cursor()
+        cur = mysql.connection.cursor(MySQLdb.cursors.Cursor)
 
         # Verificar si la unidad está siendo usada en materiaprima
         cur.execute("SELECT COUNT(*) FROM materiaprima WHERE IDUNIDAD = %s", (idunidad,))
-        usada = cur.fetchone()
+        usada = cur.fetchone()[0]
+
+        print("USADA =", usada)
 
         if usada > 0:
             flash("❌ ⚠️ No se puede eliminar la unidad de medida porque tiene registros relacionados.", "danger")
             return redirect(url_for('unidadesMedidas'))  # Redirige a donde muestras la lista de unidades
 
-        cur.execute('DELETE FROM UNIDADESMEDIDA WHERE IDUNIDAD = %s', (idunidad,))
+        filas = cur.execute('DELETE FROM UNIDADESMEDIDA WHERE IDUNIDAD = %s', (idunidad,))
+        print("FILAS BORRADAS =", filas)
         mysql.connection.commit()
         cur.close()
         flash("✅ Unidad de medida eliminado correctamente", "success")
 
     except Exception as e:
         mysql.connection.rollback()
+        print("ERROR REAL:", e)   
         flash("⚠️ No se puede eliminar la unidad de medida porque tiene registros relacionados.", "danger")
 
     return redirect(url_for('unidadesMedidas'))

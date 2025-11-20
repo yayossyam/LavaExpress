@@ -1,33 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.querySelector('.table-compra tbody'); 
     const alertContainer = document.getElementById('js-alert-container');
-
     const mensajesActivos = new Set();
+
+    /* === FUNCIONES DE ALERTA === */
     function mostrarAlerta(mensaje, tipo = 'error') {
         if (mensajesActivos.has(mensaje)) return;
         mensajesActivos.add(mensaje);
-        const alerta = document.createElement('div');
-        alerta.classList.add('js-alert', `js-alert-${tipo}`);
-        alerta.textContent = mensaje;
-        alerta.style.backgroundColor = tipo==='error' ? '#e06666' : '#4BB543';
-        alerta.style.color = '#fff';
-        alerta.style.padding = '10px 20px';
-        alerta.style.borderRadius = '8px';
-        alerta.style.marginBottom = '10px';
-        alerta.style.position = 'relative';
 
-        const btnCerrar = document.createElement('span');
-        btnCerrar.textContent = '✖';
-        btnCerrar.style.position = 'absolute';
-        btnCerrar.style.top = '5px';
-        btnCerrar.style.right = '10px';
-        btnCerrar.style.cursor = 'pointer';
-        btnCerrar.addEventListener('click', () => {
+        const alerta = document.createElement('div');
+        alerta.classList.add('js-alert');
+        if (tipo === 'success') alerta.classList.add('js-alert-success');
+
+        alerta.innerHTML = `
+            <span class="mensaje-alerta">${mensaje}</span>
+            <span class="cerrar-alerta">✖</span>
+        `;
+
+        alerta.querySelector('.cerrar-alerta').addEventListener('click', () => {
             alerta.remove();
             mensajesActivos.delete(mensaje);
         });
-        alerta.appendChild(btnCerrar);
+
         alertContainer.appendChild(alerta);
+
         setTimeout(() => {
             if (alerta.parentNode) {
                 alerta.remove();
@@ -36,7 +32,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 5000);
     }
 
-    // === Autocompletado ===
+    /* === CONFIRMACIÓN ELIMINAR === */
+    function mostrarConfirmacion(mensaje, callback) {
+        const modal = document.createElement('div');
+        modal.classList.add('js-confirm');
+
+        modal.innerHTML = `
+            <p>${mensaje}</p>
+            <button class="confirm-yes">Sí</button>
+            <button class="confirm-no">No</button>
+        `;
+
+        document.body.appendChild(modal);
+
+        modal.querySelector('.confirm-yes').addEventListener('click', () => {
+            callback(true);
+            modal.remove();
+        });
+
+        modal.querySelector('.confirm-no').addEventListener('click', () => {
+            callback(false);
+            modal.remove();
+        });
+    }
+
+    /* === ELIMINAR FILA / CARGA === */
+    document.querySelectorAll('.btn-eliminar').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const url = e.target.dataset.url;
+            mostrarConfirmacion("¿Seguro que deseas eliminar esta carga completa?", (confirmado) => {
+                if (confirmado) {
+                    window.location.href = url;
+                } else {
+                    mostrarAlerta("Eliminación cancelada", "success");
+                }
+            });
+        });
+    });
+
+    /* === AUTOCOMPLETADO MATERIA PRIMA === */
     const sugerenciasBox = document.createElement('div'); 
     sugerenciasBox.id = 'sugerencias';
     sugerenciasBox.style.display = 'none'; 
@@ -59,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             productos.forEach(materia => { 
                 const item = document.createElement('div');
-                // Mostrar el nombre completo (NOMBREMATERIAPRIMA + CANTIDADUM + UNIDAD)
                 item.textContent = materia.nombre;
                 item.dataset.id = materia.id; 
                 item.style.padding = '5px 10px';
@@ -67,14 +100,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.addEventListener('mouseover', () => item.style.backgroundColor = '#f0f0f0');
                 item.addEventListener('mouseout', () => item.style.backgroundColor = 'transparent');
                 item.addEventListener('click', () => {
-                    input.value = materia.nombre;   // Se muestra nombre completo
-                    input.dataset.id = materia.id;  // Se guarda el ID de materia
+                    input.value = materia.nombre;
+                    input.dataset.id = materia.id;
                     sugerenciasBox.style.display = 'none';
                 });
                 sugerenciasBox.appendChild(item);
             });
         }
-
         sugerenciasBox.style.display = 'block';
     }
 
@@ -84,9 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    /* === CREAR FILA NUEVA === */
     function crearFila() {
         const fila = document.createElement('tr');
-
         const tdNombre = document.createElement('td');
         const inputNombre = document.createElement('input');
         inputNombre.type = 'text';
@@ -118,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.insertBefore(fila, ultimaFila);
         inputNombre.focus();
 
-        // === Autocompletado dinámico ===
+        // Autocompletado
         inputNombre.addEventListener('input', async () => {
             inputNombre.dataset.id = ''; 
             const termino = inputNombre.value.trim();
@@ -129,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const res = await fetch(`/buscar_materia?term=${encodeURIComponent(termino)}`);
                 const materias = await res.json();
-                // materias = [{ id: 1, nombre: "Cloro 600 Mililitros" }, ...]
                 mostrarSugerencias(inputNombre, materias);
             } catch (err) {
                 mostrarAlerta('Error al autocompletar materias primas', 'error');
@@ -156,6 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
         spanAgregar.addEventListener('click', crearFila);
     }
 
+    /* === VALIDACIÓN FORMULARIO ANTES DE ENVIAR === */
     const formCargas = document.getElementById('form-nueva-carga');
     formCargas.addEventListener('submit', (e) => {
         const idCategoria = document.querySelector('#categoria').value;
@@ -184,10 +216,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!valid) {
             e.preventDefault();
-            mostrarAlerta('Asegúrate de haber seleccionado una Materia Prima del autocompletado y que la cantidad sea válida.', 'error');
+            mostrarAlerta('Selecciona Materia Prima del autocompletado y cantidad válida.', 'error');
             return;
         }
 
+        // Agregar inputs hidden para enviar ids y cantidades
         filas.forEach(fila => {
             const inputNombre = fila.querySelector('.input-nombre');
             const cantidad = fila.querySelector('.input-cantidad').value.trim();

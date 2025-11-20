@@ -9,156 +9,143 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/cargas.css')}}">
 </head>
 <body>
-    <div class="app">
+<div class="app">
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <div class="logo-box">
-                <h2>LavaSoft</h2>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo-box">
+            <h2>LavaSoft</h2>
+        </div>
+        <nav class="menu">
+            <ul>
+                <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
+                <li><a href="{{ url_for('pedidos') }}">Pedidos</a></li>
+                <li><a href="{{ url_for('cambioEstadoPedido') }}">Cambiar Estado de Pedido</a></li>
+                <li><a href="{{ url_for('proveedores') }}">Proveedores</a></li>
+                <li><a href="{{ url_for('compraMateriaPrima') }}">Compra Materia Prima</a></li>
+                <li><a href="{{ url_for('catalogoProductos') }}">Catálogo Productos</a></li>
+                <li><a href="{{ url_for('categoriaPrendas') }}">Categoría de Prendas</a></li>
+                <li><a href="{{ url_for('catalogoPrendas') }}">Catálogo de Prendas</a></li>
+                <li><a href="{{ url_for('cargas') }}" class="active">Cargas</a></li>
+                <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
+                <li><a href="{{ url_for('roles') }}">Rol</a></li>
+                <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
+                <li><a href="{{ url_for('estatus') }}">Estatus de Pedido</a></li>
+                <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                <li><a href="{{ url_for('unidadesMedidas') }}">Unidades de Medida</a></li>
+                <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="main">
+
+        <!-- ENCABEZADO -->
+        <header class="topbar">
+            <div class="header-center">
+                <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
+                <h1>LavaExpress</h1>
             </div>
-            <nav class="menu">
-                <ul>
-                    <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
-                    <li><a href="{{ url_for('pedidos') }}">Pedidos</a></li>
-                    <li><a href="{{ url_for('cambioEstadoPedido') }}">Cambiar Estado de Pedido</a></li>
-                    <li><a href="{{ url_for('proveedores') }}">Proveedores</a></li>
-                    <li><a href="{{ url_for('compraMateriaPrima') }}">Compra Materia Prima</a></li>
-                    <li><a href="{{ url_for('catalogoProductos') }}">Catálogo Productos</a></li>
-                    <li><a href="{{ url_for('categoriaPrendas') }}">Categoría de Prendas</a></li>
-                    <li><a href="{{ url_for('catalogoPrendas') }}">Catálogo de Prendas</a></li>
-                    <li><a href="{{ url_for('cargas') }}" class="active">Cargas</a></li>
-                    <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
-                    <li><a href="{{ url_for('roles') }}">Rol</a></li>
-                    <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
-                    <li><a href="{{ url_for('estatus') }}">Estatus de Pedido</a></li>
-                    <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
-                    <li><a href="{{ url_for('unidadesMedidas') }}">Unidades de Medida</a></li>
-                    <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
-                </ul>
-            </nav>
-        </aside>
+        </header>
 
-        <!-- CONTENIDO PRINCIPAL -->
-        <div class="main">
+        <!-- CUERPO PRINCIPAL -->
+        <main class="content">
 
-            <!-- ENCABEZADO -->
-            <header class="topbar">
-                <div class="header-center">
-                    <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
-                    <h1>LavaExpress</h1>
-                </div>
-            </header>
-
-            <!-- CUERPO PRINCIPAL -->
-            <main class="content">
-
-                <!-- ALERTAS -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-                <div id="js-alert-container"></div>
-
-                <!-- NUEVA CARGA -->
-                <div class="block compra-detalle">
-                    <h2>Nueva Carga</h2>
-                    <form action="{{ url_for('cargas') }}" method="POST" id="form-nueva-carga">
-                        <div class="form-row">
-                            <div class="field-group">
-                                <label for="categoria">Categoría de Prenda</label>
-                                <select id="categoria" name="idcategoria" required>
-                                    <option value="">-- Seleccione --</option>
-                                    {% for categoria in categorias %}
-                                        <option value="{{ categoria.IDCATEGORIA }}">{{ categoria.NOMBRE }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+            <!-- ALERTAS -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                        <table class="table-compra" id="tabla-carga">
-                            <thead>
-                                <tr>
-                                    <th>Materia Prima</th>
-                                    <th>Cantidad por carga</th>
-                                    <th>Eliminar</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="ultima-fila">
-                                    <td colspan="3" style="text-align:left;">
-                                        <span class="agregar-fila" style="cursor:pointer; color:#007bff;">+ Agregar Materia Prima</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div class="btn-row">
-                            <button type="submit" class="btn btn-primary">Guardar carga</button>
-                        </div>
-                    </form>
-                </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <div id="js-alert-container"></div>
 
-                <!-- CARGAS EXISTENTES -->
-                <div class="block compra-detalle">
-                    <h2>Cargas Existentes</h2>
-                    <table class="table table-bordered">
+            <!-- NUEVA CARGA -->
+            <div class="block compra-detalle">
+                <h2>Nueva Carga</h2>
+                <form action="{{ url_for('cargas') }}" method="POST" id="form-nueva-carga">
+                    <div class="form-row">
+                        <div class="field-group">
+                            <label for="categoria">Categoría de Prenda</label>
+                            <select id="categoria" name="idcategoria" required>
+                                <option value="">-- Seleccione --</option>
+                                {% for categoria in categorias %}
+                                    <option value="{{ categoria.IDCATEGORIA }}">{{ categoria.NOMBRE }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <table class="table-compra" id="tabla-carga">
                         <thead>
                             <tr>
-                                <th>Categoría</th>
                                 <th>Materia Prima</th>
                                 <th>Cantidad por carga</th>
-                                <th>Acciones</th>
+                                <th>Eliminar</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for categoria, items in cargas_agrupadas.items() %}
-                                {% for carga in items %}
-                                    <tr>
-                                        {% if loop.first %}
-                                            <td rowspan="{{ items|length }}">{{ categoria }}</td>
-                                        {% endif %}
-                                        <td>{{ carga.MATERIA }}</td>
-                                        <td>{{ carga.DESCPORCARGA }}</td>
-
-                                        {% if loop.first %}
-                                            <td rowspan="{{ items|length }}">
-                                                <a href="{{ url_for('editar_carga', idcategoria = carga.IDCATEGORIA) }}"
-                                                class="btn btn-sm btn-outline-primary me-1" title="Editar">✏️</a>
-
-                                                <a href="{{ url_for('eliminar_carga', idcategoria = carga.IDCATEGORIA) }}" 
-                                                class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que deseas eliminar esta carga completa?')" title="Eliminar">🗑️</a>
-                                            </td>
-                                        {% endif %}
-                                    </tr>
-                                {% endfor %}
-                            {% endfor %}
+                            <tr class="ultima-fila">
+                                <td colspan="3" style="text-align:left;">
+                                    <span class="agregar-fila" style="cursor:pointer; color:#007bff;">+ Agregar Materia Prima</span>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
-                </div>
-            </main>
-        </div>
-    </div>
-
-    <!-- MODAL CONFIRMACIÓN ELIMINAR -->
-    <div id="modalEliminar" class="modal">
-        <div class="modal-contenido">
-            <span class="cerrar">&times;</span>
-            <h4>⚠️ Confirmar Eliminación</h4>
-            <p>¿Estás seguro que deseas eliminar esta carga?</p>
-            <div class="d-flex justify-content-center gap-3 mt-3">
-                <button id="confirmarEliminar" class="btn btn-danger">Eliminar</button>
-                <button id="cancelarEliminar" class="btn btn-secondary">Cancelar</button>
+                    <div class="btn-row">
+                        <button type="submit" class="btn btn-primary">Guardar carga</button>
+                    </div>
+                </form>
             </div>
-        </div>
-    </div>
 
-    <script src="{{ url_for('static', filename='js/administrador/cargas.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-    
+            <!-- CARGAS EXISTENTES -->
+            <div class="block compra-detalle">
+                <h2>Cargas Existentes</h2>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Categoría</th>
+                            <th>Materia Prima</th>
+                            <th>Cantidad por carga</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for categoria, items in cargas_agrupadas.items() %}
+                            {% for carga in items %}
+                                <tr>
+                                    {% if loop.first %}
+                                        <td rowspan="{{ items|length }}">{{ categoria }}</td>
+                                    {% endif %}
+                                    <td>{{ carga.MATERIA }}</td>
+                                    <td>{{ carga.DESCPORCARGA }}</td>
+
+                                    {% if loop.first %}
+                                        <td rowspan="{{ items|length }}">
+                                            <a href="{{ url_for('editar_carga', idcategoria = carga.IDCATEGORIA) }}"
+                                            class="btn btn-sm btn-outline-primary me-1" title="Editar">✏️</a>
+
+                                            <button class="btn btn-sm btn-outline-danger btn-eliminar" 
+                                                    data-url="{{ url_for('eliminar_carga', idcategoria = carga.IDCATEGORIA) }}" 
+                                                    title="Eliminar">🗑️</button>
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/administrador/cargas.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 
