@@ -112,17 +112,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for prenda in prendas %}
-                            <tr>
-                                <td>{{ prenda.nombre }}</td>
-                                <td>{{ prenda.categoria }}</td>
-                                <td>${{ "%.2f"|format(prenda.precio_categoria or 0) }}</td>
-                                <td>
-                                    <button class="btn-edit" onclick="window.location.href='/catalogoPrendas/editar_prenda/{{ prenda.IDCATALOGO }}'">✏️</button>
-                                    <button class="action-btn delete" title="Eliminar" onclick="confirmarEliminar({{ prenda.IDCATALOGO }})"><i class="fas fa-trash"></i>🗑️</button>
-                                </td>
-                            </tr>
-                            {% endfor %}
+                            {% if prendas|length == 0 %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No existen registros</td>
+                                </tr>
+                            {% else %}
+                                {% for prenda in prendas %}
+                                    <tr>
+                                        <td>{{ prenda.nombre }}</td>
+                                        <td>{{ prenda.categoria }}</td>
+                                        <td>${{ "%.2f"|format(prenda.precio_categoria or 0) }}</td>
+                                        <td>
+                                            <button class="btn-edit" onclick="window.location.href='/catalogoPrendas/editar_prenda/{{ prenda.IDCATALOGO }}'">✏️</button>
+                                            <button class="action-btn delete" title="Eliminar" onclick="confirmarEliminar({{ prenda.IDCATALOGO }})"><i class="fas fa-trash"></i>🗑️</button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>

@@ -90,15 +90,21 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for proveedor in proveedores %}
-                                    <tr>
-                                        <td>{{ proveedor.NOMBREPROVEEDOR }}</td>
-                                        <td>
-                                            <button class="btn-edit" onclick="window.location.href='/proveedores/editar/{{ proveedor.IDPROVEEDOR }}'">✏️</button>
-                                            <button class="btn-delete" onclick="confirmarEliminar({{ proveedor.IDPROVEEDOR }})">🗑️</button>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
+                                    {% if proveedores %}
+                                        {% for proveedor in proveedores %}
+                                        <tr>
+                                            <td>{{ proveedor.NOMBREPROVEEDOR }}</td>
+                                            <td>
+                                                <button class="btn-edit" onclick="window.location.href='/proveedores/editar/{{ proveedor.IDPROVEEDOR }}'">✏️</button>
+                                                <button class="btn-delete" onclick="confirmarEliminar({{ proveedor.IDPROVEEDOR }})">🗑️</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="2" style="text-align:center;">No hay coincidencias</td>
+                                        </tr>
+                                    {% endif %}
                                 </tbody>
                             </table>
                         </div>
@@ -116,7 +122,7 @@
                                 <input type="email" id="correo" name="correo" placeholder="proveedor@gmail.com">
 
                                 <label for="telefono">Teléfono:</label>
-                                <input type="tel" id="telefono" name="telefono" placeholder="Ingrese el numero telefonico">
+                                <input type="tel" id="telefono" name="telefono" placeholder="Ingrese el numero telefonico" pattern="[0-9]+" title="Solo se permiten números">
 
                                 <button type="submit" class="btn-save">Guardar proveedor</button>
                             </form>

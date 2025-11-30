@@ -202,10 +202,10 @@ def login():
                 else: #Rol cliente
                     return redirect(url_for('misPedidos'))
             else:
-                flash("⚠️Contraseña incorrecta", "warning")
+                flash("⚠️ Contraseña incorrecta", "warning")
                 return redirect(url_for('index'))
         else:
-            flash("❌Usuario no existe", "danger")
+            flash("❌ Usuario no existe", "danger")
             return redirect(url_for('index'))
         
     return render_template('login.html')
@@ -213,43 +213,62 @@ def login():
 #Función de Register
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST' and 'nombre' in request.form and 'apellido' in request.form and 'correo' in request.form and 'password' in request.form:
+    try:
+        if request.method == 'POST' and 'nombre' in request.form and 'apellido' in request.form and 'correo' in request.form and 'password' in request.form:
 
-        #Capturamos los datos que el usuario ingreso
-        nombre = request.form['nombre']
-        apaterno = request.form['apellido']
-        correo = request.form['correo']
-        password = request.form['password']
+            #Capturamos los datos que el usuario ingreso
+            nombre = request.form['nombre']
+            apaterno = request.form['apellido']
+            correo = request.form['correo']
+            password = request.form['password']
 
-        #Creamos cursor
-        cur=mysql.connection.cursor()
+            #Creamos cursor
+            cur=mysql.connection.cursor()
 
-        #Obtener el ultimo ID de USUARIO
-        cur.execute('SELECT MAX(IDUSER) AS max_id FROM USUARIO')
-        result = cur.fetchone()
-        id = (result['max_id'] or 0) + 1
-        
+            # Validación de contraseña mínima
+            if len(password) < 8:
+                flash("❌ La contraseña debe tener al menos 8 caracteres", "danger")
+                return redirect(url_for('register'))
 
-        #Este INSERT se realizará en la tabla USUARIO
-        cur.execute('INSERT INTO USUARIO (IDUSER, IDROL, NOMBRE, APATERNO, CORREO, PASS) VALUES (%s,%s,%s,%s, %s, %s)', (id,2, nombre, apaterno, correo, password))
+            #Verificar si el correo ya esta en uso
+            cur.execute('SELECT COUNT(*) AS count FROM USUARIO WHERE CORREO =%s', (correo,))
+            count = cur.fetchone()
+
+            if count['count']:
+                flash("❌ El correo ya ha sido registrado", "danger")
+                return redirect(url_for('register'))
+
+            #Obtener el ultimo ID de USUARIO
+            cur.execute('SELECT MAX(IDUSER) AS max_id FROM USUARIO')
+            result = cur.fetchone()
+            id = (result['max_id'] or 0) + 1
+            
+
+            #Este INSERT se realizará en la tabla USUARIO
+            cur.execute('INSERT INTO USUARIO (IDUSER, IDROL, NOMBRE, APATERNO, CORREO, PASS) VALUES (%s,%s,%s,%s, %s, %s)', (id,2, nombre, apaterno, correo, password))
 
 
-        #Se confirma el INSERT
-        mysql.connection.commit()
+            #Se confirma el INSERT
+            mysql.connection.commit()
 
-        #Se cierra el cursor
-        cur.close()
+            #Se cierra el cursor
+            cur.close()
 
-        # Enviar correo de bienvenida
-        try:
-            enviar_correo_bienvenida(correo, nombre)
-        except Exception as e:
-            print(f"❌ Error al enviar el correo: {e}")
+            # Enviar correo de bienvenida
+            try:
+                enviar_correo_bienvenida(correo, nombre)
+            except Exception as e:
+                print(f"❌ Error al enviar el correo: {e}")
 
-        flash("✅Usuario Registrado de manera exitosa","success")
-        return redirect(url_for('index'))
-    else:
+            flash("✅Usuario Registrado de manera exitosa","success")
+            return redirect(url_for('index'))
+        else:
+            return render_template('register.html')
+    except Exception as e:
+        flash("❌ Complete todos los campos", "danger")
         return render_template('register.html')
+    
+
 
 #Funcion de Reportes
 @app.route('/reporte')
@@ -276,49 +295,61 @@ def inicioAdmin():
     if session.get('rol') != 1:
         return redirect(url_for('cerrar_sesion_restringidas'))
 
-    if request.method == 'POST' and 'nombre' in request.form and 'apellido' in request.form and 'correo' in request.form and 'password' in request.form and 'rol' in request.form:
-        nombre = request.form['nombre']
-        apellido = request.form['apellido']
-        correo = request.form['correo']
-        contra = request.form['password']
-        rol = request.form['rol']
+    try:
+        if request.method == 'POST' and 'nombre' in request.form and 'apellido' in request.form and 'correo' in request.form and 'password' in request.form and 'rol' in request.form:
+            nombre = request.form['nombre']
+            apellido = request.form['apellido']
+            correo = request.form['correo']
+            contra = request.form['password']
+            rol = request.form['rol']
 
-        #Creamos instancia BD
-        cur = mysql.connection.cursor()
+            #Creamos instancia BD
+            cur = mysql.connection.cursor()
 
-        #Verificar que solo exista un correo dado de alta
-        cur.execute('SELECT * FROM USUARIO WHERE CORREO = %s', (correo,))
-        existente = cur.fetchone()
+            # Validación de contraseña mínima
+            if len(contra) < 8:
+                flash("(❌ La contraseña debe tener al menos 8 caracteres)", "danger")
+                return redirect(url_for('inicioAdmin'))
 
-        if existente:
-            flash ("❌El correo ya esta en uso", "danger")
+
+            #Verificar que solo exista un correo dado de alta
+            cur.execute('SELECT * FROM USUARIO WHERE CORREO = %s', (correo,))
+            existente = cur.fetchone()
+
+            if existente:
+                flash ("❌ El correo ya esta en uso", "danger")
+                return redirect(url_for('inicioAdmin'))
+            
+            #Obtenemos el ultimo ID
+            cur.execute('SELECT MAX(IDUSER) AS max_id FROM USUARIO')
+            resultado = cur.fetchone()
+            id = (resultado['max_id'] or 0) + 1
+
+            #Si no existe correo, procedemos a generar INSERT
+            cur.execute('INSERT INTO USUARIO (IDUSER, IDROL, NOMBRE, APATERNO, CORREO, PASS) VALUES (%s, %s, %s, %s, %s, %s)', (id, rol, nombre, apellido, correo, contra))
+
+            #Guardamos COMMIT
+            mysql.connection.commit()
+
+            #Cerramos BD
+            cur.close()
+
+            # Enviar correo de bienvenida
+            try:
+                enviar_correo_bienvenida(correo, nombre)
+            except Exception as e:
+                print(f"❌ Error al enviar correo de bienvenida: {e}")
+
+            #Mensaje de exito
+            flash("✅ Usuario registrado correctamente", "success")
+
             return redirect(url_for('inicioAdmin'))
-        
-        #Obtenemos el ultimo ID
-        cur.execute('SELECT MAX(IDUSER) AS max_id FROM USUARIO')
-        resultado = cur.fetchone()
-        id = (resultado['max_id'] or 0) + 1
-
-        #Si no existe correo, procedemos a generar INSERT
-        cur.execute('INSERT INTO USUARIO (IDUSER, IDROL, NOMBRE, APATERNO, CORREO, PASS) VALUES (%s, %s, %s, %s, %s, %s)', (id, rol, nombre, apellido, correo, contra))
-
-        #Guardamos COMMIT
-        mysql.connection.commit()
-
-        #Cerramos BD
-        cur.close()
-
-        # Enviar correo de bienvenida
-        try:
-            enviar_correo_bienvenida(correo, nombre)
-        except Exception as e:
-            print(f"❌ Error al enviar correo de bienvenida: {e}")
-
-        #Mensaje de exito
-        flash("✅ Usuario registrado correctamente", "success")
-
+    except Exception as e:
+        flash("❌ Complete todos los campos", "danger")
         return redirect(url_for('inicioAdmin'))
-    
+
+
+
     #Si es GET, mostramos los roles existentes
     cur = mysql.connection.cursor()
     cur.execute('SELECT IDROL, NOMROL FROM ROLES')
@@ -365,6 +396,11 @@ def editar_usuarios(idusuario):
         nombre = request.form['nombre']
         apellido = request.form['apellido']
         rol = request.form['rol']
+
+        # Validación de campos vacíos (APEGO TOTAL A TU ESTRUCTURA)
+        if nombre == "" or apellido == "" or rol == "":
+            flash("❌ No puedes dejar campos vacíos.", "danger")
+            return redirect(url_for('editar_usuarios', idusuario=idusuario))
 
         #Creamos instancia BD
         cur = mysql.connection.cursor()
@@ -1177,9 +1213,21 @@ def proveedores():
     if request.method == 'POST' and 'nombre' in request.form and 'correo' in request.form and 'telefono' in request.form:
         
         #Capturamos los datos obtenidos en el form
-        nombre = request.form['nombre']
-        correo = request.form['correo']
-        telefono = request.form['telefono']
+        nombre = request.form['nombre'].strip()
+        correo = request.form['correo'].strip()
+        telefono = request.form['telefono'].strip()
+
+        #Validación de campos vacíos
+        if not nombre or not correo or not telefono:
+            flash("⚠️ Todos los campos son obligatorios", "danger")
+            return redirect(url_for('proveedores'))
+        
+        #Validación de formato de correo
+        import re
+        patron_correo = r"[^@]+@[^@]+\.[^@]+"
+        if not re.match(patron_correo, correo):
+            flash("⚠️ El correo ingresado no es válido", "danger")
+            return redirect(url_for('proveedores'))
 
         #Creamos instancia en la BD para generar consultas
         cur = mysql.connection.cursor()
@@ -1243,12 +1291,32 @@ def editar_proveedor(idproveedor):
 
     if request.method == 'POST':
         #Capturamos los datos
-        nombre = request.form['nombre']
-        correo = request.form['correo']
-        telefono = request.form['telefono']
+        nombre = request.form['nombre'].strip()
+        correo = request.form['correo'].strip()
+        telefono = request.form['telefono'].strip()
+
+        # Validación de campos vacíos
+        if not nombre or not correo or not telefono:
+            flash("⚠️ Todos los campos son obligatorios", "danger")
+            return redirect(url_for('editar_proveedor', idproveedor=idproveedor))
+        
+        # Validación de formato de correo
+        import re
+        patron_correo = r"[^@]+@[^@]+\.[^@]+"
+        if not re.match(patron_correo, correo):
+            flash("⚠️ El correo ingresado no es válido", "danger")
+            return redirect(url_for('editar_proveedor', idproveedor=idproveedor))
 
         #Creamos instancia de la BD
         cur = mysql.connection.cursor()
+
+        # Verificar si el correo ya existe en otro proveedor
+        cur.execute('SELECT COUNT(*) AS count FROM PROVEEDORES WHERE CORREO = %s AND IDPROVEEDOR != %s', (correo, idproveedor))
+        result = cur.fetchone()
+        if result['count'] > 0:
+            flash("❌ El correo ingresado ya está en uso por otro proveedor", "danger")
+            cur.close()
+            return redirect(url_for('editar_proveedor', idproveedor=idproveedor))
 
         cur.execute('UPDATE PROVEEDORES SET NOMBREPROVEEDOR = %s, CORREO = %s, TELEFONO = %s WHERE IDPROVEEDOR = %s', (nombre, correo, telefono, idproveedor))
 
@@ -1348,6 +1416,15 @@ def compraMateriaPrima():
 
             # Insertar cada detalle
             for nombre, cantidad, unidad, cantidadum in zip(nombres, cantidades, unidades, cant_um):
+
+                # === VALIDACIÓN CANTIDAD ENTERO POSITIVO ===
+                if not cantidad.isdigit() or int(cantidad) <= 0:
+                    flash(f'❌ La cantidad ingresada para "{nombre}" es inválida. Solo se permiten números enteros positivos.', 'danger')
+                    mysql.connection.rollback()
+                    cur.close()
+                    return redirect(url_for('compraMateriaPrima'))
+
+
                 # Buscar el producto exacto en MATERIAPRIMA
                 cur.execute('''
                     SELECT m.IDMATERIAPRIMA, m.CANTIDAD
@@ -1526,6 +1603,33 @@ def categoriaPrendas():
         kgmaximo = request.form['kgmaximo']
         preciokg = request.form['preciokg']
 
+        # Validar campos vacíos
+        if not nombre or not kgmaximo or not preciokg:
+            flash("⚠️ Todos los campos son obligatorios", "danger")
+            return redirect(url_for('categoriaPrendas'))
+        
+        # Validar que kgmaximo sea entero
+        if not kgmaximo.isdigit():
+            flash("⚠️ El KG máximo debe ser un número entero", "danger")
+            return redirect(url_for('categoriaPrendas'))
+        
+        kgmax = int(kgmaximo)
+        if kgmax <= 0:
+            flash("⚠️ El KG máximo debe ser mayor a 0", "danger")
+            return redirect(url_for('categoriaPrendas'))
+        
+        # Validar que sea numero decimal o entero
+        try:
+            precio = float(preciokg)
+        except ValueError:
+            flash("⚠️ El precio debe ser un número válido", "danger")
+            return redirect(url_for('categoriaPrendas'))
+
+        if precio <= 0:
+            flash("⚠️ El precio debe ser mayor a 0", "danger")
+            return redirect(url_for('categoriaPrendas'))
+
+
         #Crear instancia BD
         cur = mysql.connection.cursor()
 
@@ -1586,6 +1690,44 @@ def editar_categoria(idcategoria):
 
         #Creamos instancia BD
         cur = mysql.connection.cursor()
+
+        # Nombre vacío
+        if not nombre or not kgmaximo or not preciokg:
+            flash("⚠️ Todos los campos son obligatorios", "danger")
+            return redirect(request.url)
+        
+        # Validar nombre repetido 
+        cur.execute("""SELECT * FROM CATEGORIAPRENDAS WHERE LOWER(NOMBRE) = LOWER(%s) AND IDCATEGORIA != %s""", (nombre, idcategoria))
+        existe = cur.fetchone()
+
+        if existe:
+            flash("⚠️ Ya existe una categoría con ese nombre", "danger")
+            return redirect(request.url)
+        
+        # Validar kg máximo (solo enteros y mayor a 0)
+        try:
+            kg_float = float(kgmaximo)
+
+            if kg_float <= 0 or not kg_float.is_integer():
+                flash("⚠️ El KG máximo debe ser un número entero mayor a 0", "danger")
+                return redirect(request.url)
+            
+            kg_int = int(kg_float)
+        except ValueError:
+            flash("⚠️ El KG máximo debe ser un número válido", "danger")
+            return redirect(request.url)
+        
+        # preciokg debe ser decimal válido y positivo
+        try:
+            precio_decimal = float(preciokg)
+            if precio_decimal <= 0:
+                flash("⚠️ El precio KG debe ser mayor a 0", "danger")
+                return redirect(request.url)
+        except ValueError:
+            flash("⚠️ El precio por KG debe ser un número válido", "danger")
+            return redirect(request.url)
+        
+
 
         #Generamos UPDATE
         cur.execute('UPDATE CATEGORIAPRENDAS SET NOMBRE = %s, KGMAXIMO = %s, PRECIOKG = %s WHERE IDCATEGORIA = %s',(nombre, kgmaximo, preciokg, idcategoria))
@@ -1656,6 +1798,13 @@ def catalogoPrendas():
             # Validación de los campos
             if not (nombre and idcategoria and iduser):
                 flash("Campos obligatorios", "danger")
+                return redirect(url_for('catalogoPrendas'))
+            
+            # Validación de Nombre de Prenda, Formato
+            import re
+
+            if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$', nombre):
+                flash("❌ El nombre de la prenda solo puede contener letras", "danger")
                 return redirect(url_for('catalogoPrendas'))
             
             #Creamos intancia BD
@@ -1738,11 +1887,33 @@ def editar_prenda(idcatalogo):
 
     if request.method == 'POST':
         #Capturamos nuevo FORM
-        nombre = request.form['nombre']
+        nombre = request.form['nombre'].strip()
         categoria = request.form['categoria']
 
         #Crear instancia BD
         cur = mysql.connection.cursor()
+
+        import re
+        #Validación de formato
+        if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$', nombre):
+            flash("❌ El nombre de la prenda solo puede contener letras", "danger")
+            return redirect(url_for('editar_prenda', idcatalogo=idcatalogo))
+        
+        # === VALIDACIÓN DE NOMBRE DUPLICADO ===
+        cur.execute('''
+        SELECT COUNT(*) AS count
+        FROM CATALOGOPRENDAS
+        WHERE LOWER(NOMBREPRENDA) = LOWER(%s)
+            AND IDCATEGORIA = %s
+            AND IDCATALOGO != %s
+        ''', (nombre, categoria, idcatalogo))
+        result = cur.fetchone()
+
+        if result['count'] > 0:
+            flash("❌ Ya existe una prenda con este nombre en la misma categoría", "danger")
+            cur.close()
+            return redirect(url_for('editar_prenda', idcatalogo=idcatalogo))
+
 
         #Generar UPDATE
         cur.execute('UPDATE CATALOGOPRENDAS SET IDCATEGORIA = %s, NOMBREPRENDA = %s WHERE IDCATALOGO = %s',(categoria, nombre, idcatalogo))
@@ -1837,13 +2008,28 @@ def cargas():
         fallidas = 0
 
         for id_materia, carga_cantidad in zip(id_materias_list, cargas_list):
+#            try:
+#                id_materia = int(id_materia)
+#                carga_int = int(float(carga_cantidad))  # Entero para mostrar en input
+#                carga_base = convertir_carga_a_base(carga_int)  # Convertir a unidad base
+#                id_categoria_int = int(idcategoria)
+#            except ValueError:
+#                fallidas += 1
+#                continue
+
             try:
                 id_materia = int(id_materia)
-                carga_int = int(float(carga_cantidad))  # Entero para mostrar en input
-                carga_base = convertir_carga_a_base(carga_int)  # Convertir a unidad base
+                carga_float = float(carga_cantidad)  # Convertir a número decimal
+                if carga_float < 1:
+                    fallidas += 1
+                    flash(f"La carga para la materia prima debe ser mayor o igual a 1", "danger")
+                    continue
+                carga_int = int(carga_float)  # Entero para almacenar o mostrar
+                carga_base = convertir_carga_a_base(carga_int)  # Tu función de conversión
                 id_categoria_int = int(idcategoria)
             except ValueError:
                 fallidas += 1
+                flash(f"Valor inválido para la materia prima ID {id_materia}", "danger")
                 continue
 
             # Obtener último ID
@@ -1861,7 +2047,10 @@ def cargas():
         if exitosas > 0:
             flash(f"Registro de Carga(s) exitoso. Se insertaron {exitosas} fila(s).", "success")
         if fallidas > 0 and exitosas == 0:
-            flash(f"No se pudo registrar ninguna carga. Revisa las advertencias.", "danger")
+            print("Error")
+            #flash(f"No se pudo registrar ninguna carga. Revisa las advertencias.", "danger")
+            return redirect(url_for('cargas'))
+            
 
         return redirect(url_for('cargas'))
 
@@ -2271,156 +2460,198 @@ def exportar_reporte_ventas():
         flash("Error al generar el reporte PDF de ventas", "danger")
         return redirect(url_for('reportes_ventas'))
 
-#Reportes Reabastecimiento
-@app.route('/reportesReabastecimiento')
+# Reporte de Reabastecimiento
+@app.route('/reportesReabastecimiento', methods = ['GET', 'POST'])
 def reportes_reabastecimiento():
-    # Protección de Ruta
+    # Validación de sesión
     if not session.get('logueado'):
-        flash("⚠️ No hay sesión activa", "warning")
-        return redirect(url_for('login'))
-
-    # Verificar rol administrador
-    if session.get('rol') != 1:
-        return redirect(url_for('cerrar_sesion_restringidas'))
-
-    try:
-        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cur.execute("""
-            SELECT
-                m.IDMATERIAPRIMA AS ID,
-                m.NOMBREMATERIAPRIMA AS NOMBRE,
-                CAST(m.CANTIDAD AS DECIMAL(10,2)) AS CANTIDAD,
-                CAST(m.STOCKMINIMO AS DECIMAL(10,2)) AS STOCK_MINIMO,
-                CAST(m.CANTIDADUM AS DECIMAL(10,2)) AS CANTIDAD_UM,
-                u.NOMBRE AS UNIDAD
-            FROM MATERIAPRIMA m
-            LEFT JOIN UNIDADESMEDIDA u ON m.IDUNIDAD = u.IDUNIDAD
-            WHERE m.CANTIDAD < m.STOCKMINIMO
-            ORDER BY m.NOMBREMATERIAPRIMA
-        """)
-        inventario = cur.fetchall()
-        cur.close()
-
-        # Ajustar unidades menores a 1 y formatear números
-        for m in inventario:
-            # Multiplicar por 1000 si es menor que 1
-            if m['CANTIDAD_UM'] < 1:
-                m['CANTIDAD_UM'] = float(m['CANTIDAD_UM']) * 1000
-            else:
-                m['CANTIDAD_UM'] = float(m['CANTIDAD_UM'])
-
-            # Convertir a float para manipular
-            m['CANTIDAD'] = float(m['CANTIDAD'])
-            m['STOCK_MINIMO'] = float(m['STOCK_MINIMO'])
-
-            # Mostrar enteros si es exacto
-            m['CANTIDAD_UM'] = int(m['CANTIDAD_UM']) if m['CANTIDAD_UM'].is_integer() else m['CANTIDAD_UM']
-            m['CANTIDAD'] = int(m['CANTIDAD']) if m['CANTIDAD'].is_integer() else m['CANTIDAD']
-            m['STOCK_MINIMO'] = int(m['STOCK_MINIMO']) if m['STOCK_MINIMO'].is_integer() else m['STOCK_MINIMO']
-
-        return render_template(
-            'administrador/reportes/reportesReabastecimiento.html',
-            inventario=inventario
-        )
-
-    except Exception as e:
-        print(f"❌ Error en /reportesReabastecimiento: {e}")
-        flash(f'Error al generar el reporte: {str(e)}', 'danger')
-        return render_template('administrador/reportes/reportesReabastecimiento.html', inventario=[])
-
-#Exportacion PDF Reportes de Reabastecimiento
-@app.route('/exportar_reporte_reabastecimiento')
-def exportar_reporte_reabastecimiento():
-    # Protección de Ruta
-    if not session.get('logueado'):
-        flash("⚠️ No hay sesión activa", "warning")
-        return redirect(url_for('login'))
-
-    # Verificar rol administrador
-    if session.get('rol') != 1:
-        return redirect(url_for('cerrar_sesion_restringidas'))
-
-    try:
-        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cur.execute("""
-            SELECT
-                m.IDMATERIAPRIMA AS ID,
-                m.NOMBREMATERIAPRIMA AS NOMBRE,
-                CAST(m.CANTIDAD AS DECIMAL(10,2)) AS CANTIDAD,
-                CAST(m.STOCKMINIMO AS DECIMAL(10,2)) AS STOCK_MINIMO,
-                CAST(m.CANTIDADUM AS DECIMAL(10,2)) AS CANTIDAD_UM,
-                u.NOMBRE AS UNIDAD
-            FROM MATERIAPRIMA m
-            INNER JOIN UNIDADESMEDIDA u ON m.IDUNIDAD = u.IDUNIDAD
-            WHERE m.CANTIDAD < m.STOCKMINIMO
-            ORDER BY m.NOMBREMATERIAPRIMA
-        """)
-        inventario = cur.fetchall()
-        cur.close()
-
-        if not inventario:
-            flash('⚠️ No se encontraron registros para exportar', 'warning')
-            return redirect(url_for('reportes_reabastecimiento'))
-
-        for m in inventario:
-            if m['CANTIDAD_UM'] < 1:
-                m['CANTIDAD_UM'] = float(m['CANTIDAD_UM']) * 1000
-            else:
-                m['CANTIDAD_UM'] = float(m['CANTIDAD_UM'])
-
-            m['CANTIDAD'] = float(m['CANTIDAD'])
-            m['STOCK_MINIMO'] = float(m['STOCK_MINIMO'])
-
-            m['CANTIDAD_UM'] = int(m['CANTIDAD_UM']) if m['CANTIDAD_UM'].is_integer() else m['CANTIDAD_UM']
-            m['CANTIDAD'] = int(m['CANTIDAD']) if m['CANTIDAD'].is_integer() else m['CANTIDAD']
-            m['STOCK_MINIMO'] = int(m['STOCK_MINIMO']) if m['STOCK_MINIMO'].is_integer() else m['STOCK_MINIMO']
-
-        buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter)
-        styles = getSampleStyleSheet()
-        elements = []
-
-        elements.append(Paragraph("📊 REPORTE DE REABASTECIMIENTO - LAVAEXPRESS", styles["Title"]))
-        elements.append(Spacer(1, 12))
-
-        data = [["ID", "Materia Prima", "Cantidad (UM)", "Cantidad Existente", "Stock Mínimo"]]
-        for m in inventario:
-            cantidad_um_str = f"{m['CANTIDAD_UM']} {m['UNIDAD']}"
-            data.append([m['ID'], m['NOMBRE'], cantidad_um_str, m['CANTIDAD'], m['STOCK_MINIMO']])
-
-        tabla = Table(data, repeatRows=1)
-
-        estilos = [
-            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#2980b9")),
-            ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-            ('BOTTOMPADDING', (0,0), (-1,0), 6),
-        ]
-
-        for i, m in enumerate(inventario):
-            if m['CANTIDAD'] < m['STOCK_MINIMO']:
-                estilos.append(('BACKGROUND', (0, i+1), (-1, i+1), colors.HexColor("#f8d7da")))
-
-        tabla.setStyle(TableStyle(estilos))
-        elements.append(tabla)
-        elements.append(Spacer(1,12))
-
-        doc.build(elements)
-        buffer.seek(0)
-
-        return send_file(
-            buffer,
-            as_attachment=True,
-            download_name="reporte_reabastecimiento.pdf",
-            mimetype="application/pdf"
-        )
-
-    except Exception as e:
-        print(f"❌ Error al generar PDF de reabastecimiento: {e}")
-        flash("Error al generar el PDF de reabastecimiento", "danger")
+        flash("⚠️ No hay sesión activa", "danger")
         return redirect(url_for('reportes_reabastecimiento'))
+    
+    # Verificar rol administrador
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+    
+    # Metodo POST
+    if request.method == 'POST':
+        # Capturamos datos del FORM
+        fecha_inicio = request.form['fechaInicio']
+        fecha_final = request.form['fechaFinal']
+
+        # Crear instancia BD
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+        # Consulta
+        consulta = """
+            SELECT 
+                p.nombreproveedor AS proveedor,
+                cmp.fecha AS fecha_compra,
+                mp.nombremateriaprima AS materia_prima,
+                cd.cantidad AS cantidad,
+                u.nombre AS unidad
+            FROM compramateriaprima cmp
+            INNER JOIN proveedores p ON p.idproveedor = cmp.idproveedor
+            INNER JOIN compradetalle cd ON cd.idcompra = cmp.idcompra
+            INNER JOIN materiaprima mp ON mp.idmateriaprima = cd.idmateriaprima
+            INNER JOIN unidadesmedida u ON u.idunidad = mp.idunidad
+            WHERE DATE(cmp.fecha) BETWEEN %s AND %s
+            ORDER BY cmp.fecha ASC, p.nombreproveedor ASC, mp.nombremateriaprima ASC;
+                    """
+        
+        cur.execute(consulta, (fecha_inicio, fecha_final))
+        resultados = cur.fetchall()
+        cur.close()
+
+        return render_template('administrador/reportes/reportesReabastecimientoResultados.html',
+                            resultados = resultados,
+                            fecha_inicio = fecha_inicio,
+                            fecha_final = fecha_final)
+    
+    # SI ES GET
+    return render_template('administrador/reportes/reportesReabastecimiento.html')
+
+# Exportación PDF Reportes de Reabastecimiento
+@app.route('/exportar_reabastecimiento_pdf')
+def exportar_reabastecimiento_pdf():
+
+    # Validación de sesión
+    if not session.get('logueado'):
+        flash("⚠️ No hay sesión activa", "warning")
+        return redirect(url_for('login'))
+
+    if session.get('rol') != 1:
+        return redirect(url_for('cerrar_sesion_restringidas'))
+
+    # Fechas recibidas
+    fecha_inicio = request.args.get("inicio")
+    fecha_final = request.args.get("fin")
+
+    # Consulta igual a la del reporte
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    consulta = """
+        SELECT 
+            p.nombreproveedor AS proveedor,
+            cmp.fecha AS fecha_compra,
+            mp.nombremateriaprima AS materia_prima,
+            cd.cantidad AS cantidad,
+            u.nombre AS unidad
+        FROM compramateriaprima cmp
+        INNER JOIN proveedores p ON p.idproveedor = cmp.idproveedor
+        INNER JOIN compradetalle cd ON cd.idcompra = cmp.idcompra
+        INNER JOIN materiaprima mp ON mp.idmateriaprima = cd.idmateriaprima
+        INNER JOIN unidadesmedida u ON u.idunidad = mp.idunidad
+        WHERE DATE(cmp.fecha) BETWEEN %s AND %s
+        ORDER BY cmp.fecha ASC, p.nombreproveedor ASC, mp.nombremateriaprima ASC;
+    """
+
+    cur.execute(consulta, (fecha_inicio, fecha_final))
+    resultados = cur.fetchall()
+    cur.close()
+
+    if not resultados:
+        flash("⚠️ No hay datos para exportar en estas fechas", "warning")
+        return redirect(url_for("reportes_reabastecimiento"))
+
+    # ============
+    # AGRUPACIÓN
+    # ============
+    grupos = {}
+
+    for row in resultados:
+        clave = f"{row['proveedor']}|{row['fecha_compra']}"
+        if clave not in grupos:
+            grupos[clave] = []
+        grupos[clave].append(row)
+
+    # ============
+    # CREAR PDF
+    # ============
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    titulo = f"■ REPORTE DE REABASTECIMIENTO DEL {fecha_inicio} AL {fecha_final}"
+    elements.append(Paragraph(titulo, styles["Title"]))
+    elements.append(Spacer(1, 15))
+
+    # Tabla con encabezado
+    data = [["Proveedor", "Fecha", "Materia Prima", "Cantidad", "Unidad"]]
+    span_commands = []
+
+    row_index = 1  # empieza después del encabezado
+
+    for clave, rows in grupos.items():
+
+        proveedor, fecha = clave.split("|")
+        total_filas = len(rows)
+
+        # Agregar filas
+        for i, r in enumerate(rows):
+
+            # Primera fila muestra proveedor y fecha normales
+            if i == 0:
+                data.append([
+                    proveedor,
+                    fecha,
+                    r["materia_prima"],
+                    f"{r['cantidad']:.2f}",
+                    r["unidad"]
+                ])
+            else:
+                # Filas adicionales → celdas vacías (estas se combinarán)
+                data.append([
+                    "",
+                    "",
+                    r["materia_prima"],
+                    f"{r['cantidad']:.2f}",
+                    r["unidad"]
+                ])
+
+        # ====== MARCAR SPAN (COMBINAR CELDAS) ======
+        if total_filas > 1:
+            # Combinar columna 0 (proveedor)
+            span_commands.append(('SPAN',
+                                  (0, row_index),
+                                  (0, row_index + total_filas - 1)))
+
+            # Combinar columna 1 (fecha)
+            span_commands.append(('SPAN',
+                                  (1, row_index),
+                                  (1, row_index + total_filas - 1)))
+
+        # avanzar el índice para el siguiente grupo
+        row_index += total_filas
+
+    # Crear tabla PDF
+    tabla = Table(data, repeatRows=1)
+
+    # Estilos base
+    tabla_style = [
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#2980b9")),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ('BOTTOMPADDING', (0,0), (-1,0), 6),
+    ]
+
+    # Agregar SPAN real
+    tabla_style.extend(span_commands)
+
+    tabla.setStyle(TableStyle(tabla_style))
+
+    elements.append(tabla)
+    doc.build(elements)
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="reporte_reabastecimiento_fechas.pdf",
+        mimetype="application/pdf"
+    )
 
 # Reportes Inventario
 @app.route('/reportesInventario')

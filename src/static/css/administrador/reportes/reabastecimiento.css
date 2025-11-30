@@ -332,3 +332,27 @@ input[type="date"]:focus {
     background: linear-gradient(145deg, var(--color-darkblue), #1b4f8a);
     transform: translateY(-2px) scale(1.05);
 }
+
+/* === AGRUPACIÓN CON ROWSPAN === */
+.columna-agrupada {
+    background-color: #d6e9ff !important;
+    font-weight: 800;
+    vertical-align: middle !important;
+    border-right: 2px solid #bcd8ff !important;
+}
+
+/* Línea que separa grupos */
+.separador td {
+    height: 8px;
+    background: #f7eccc !important;
+    border: none !important;
+}
+
+/* Ajustes adicionales para que todo se vea uniforme */
+.table tbody tr td {
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover td {
+    background-color: #eaf4ff !important;
+}

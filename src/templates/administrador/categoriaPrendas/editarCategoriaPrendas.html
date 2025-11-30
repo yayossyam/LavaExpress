@@ -58,6 +58,18 @@
             <!-- CUERPO PRINCIPAL -->
             <div class="content">
 
+                <!-- ALERTAS -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{message}}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
                 <!-- TARJETON DE EDICIÓN -->
                 <section class="card edit-card">
                     <form class="register-form" action="{{url_for('editar_categoria', idcategoria = categoria.IDCATEGORIA)}}" method="POST">
@@ -95,5 +107,7 @@
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

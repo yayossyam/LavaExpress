@@ -82,15 +82,21 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for categoria in categorias %}
-                                <tr>
-                                    <td>{{ categoria.NOMBRE }}</td>
-                                    <td>
-                                        <button class="btn-edit" onclick="window.location.href='{{ url_for('editar_categoria', idcategoria = categoria.IDCATEGORIA) }}'">✏️</button>
-                                        <button class="btn-delete" onclick="abrirModalEliminar({{categoria.IDCATEGORIA}})">🗑️</button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
+                                {% if categorias %}
+                                    {% for categoria in categorias %}
+                                        <tr>
+                                            <td>{{ categoria.NOMBRE }}</td>
+                                            <td>
+                                                <button class="btn-edit" onclick="window.location.href='{{ url_for('editar_categoria', idcategoria = categoria.IDCATEGORIA) }}'">✏️</button>
+                                                <button class="btn-delete" onclick="abrirModalEliminar({{categoria.IDCATEGORIA}})">🗑️</button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="2" class="text-center text-muted">No existen categorías registradas aún.</td>
+                                    </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>

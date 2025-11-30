@@ -122,6 +122,17 @@
         </div>
     </div>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const msg = localStorage.getItem("msg_exito");
+            if (msg) {
+                alert("✅ " + msg);
+                localStorage.removeItem("msg_exito");
+            }
+        });
+    </script>
+
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/administrador/eliminarPedido.js') }}"></script>

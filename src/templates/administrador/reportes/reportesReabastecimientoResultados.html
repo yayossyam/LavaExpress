@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados Reabastecimiento</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/administrador/reportes/reabastecimiento.css') }}">
+</head>
+
+<body>
+<div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo-box"><h2>LavaSoft</h2></div>
+        <nav class="menu">
+            <ul>
+                <li><a href="{{ url_for('inicioAdmin') }}">Registrar Usuario</a></li>
+                <li><a href="{{ url_for('pedidos') }}">Pedidos</a></li>
+                <li><a href="{{ url_for('cambioEstadoPedido') }}">Cambiar Estado Pedido</a></li>
+                <li><a href="{{ url_for('proveedores') }}">Proveedores</a></li>
+                <li><a href="{{ url_for('compraMateriaPrima') }}">Compra Materia Prima</a></li>
+                <li><a href="{{ url_for('catalogoProductos') }}">Catálogo Productos</a></li>
+                <li><a href="{{ url_for('categoriaPrendas') }}">Categoría Prendas</a></li>
+                <li><a href="{{ url_for('catalogoPrendas') }}">Catálogo Prendas</a></li>
+                <li><a href="{{ url_for('cargas') }}">Cargas</a></li>
+                <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
+                <li><a href="{{ url_for('roles') }}">Rol</a></li>
+                <li><a href="{{ url_for('materiaPrima') }}">Materia Prima</a></li>
+                <li><a href="{{ url_for('estatus') }}">Estatus Pedido</a></li>
+                <li><a href="{{ url_for('servicios') }}">Servicios</a></li>
+                <li><a href="{{ url_for('unidadesMedidas') }}">Unidades Medida</a></li>
+                <li><a href="{{ url_for('loggout') }}">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- CONTENIDO -->
+    <div class="main">
+        <header class="topbar">
+            <div class="header-center">
+                <img src="{{ url_for('static', filename='img/logoo.jpeg') }}" class="icon-logo">
+                <h1>LavaExpress</h1>
+            </div>
+            <div class="header-right">
+                <div class="display-only">Resultados Reabastecimiento</div>
+            </div>
+        </header>
+
+        <main class="content">
+            <div class="reportes-config">
+                <h2>📄 RESULTADOS DEL REPORTE</h2>
+                <p class="subtitulo">
+                    Resultados del <strong>{{ fecha_inicio }}</strong> al <strong>{{ fecha_final }}</strong>
+                </p>
+
+                {% if resultados %}
+                <div class="table-responsive mt-4">
+                    <table class="table table-bordered table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Proveedor</th>
+                                <th>Fecha Compra</th>
+                                <th>Materia Prima</th>
+                                <th>Cantidad</th>
+                                <th>Unidad</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {# ==== 1. AGRUPAR POR PROVEEDOR + FECHA ==== #}
+                            {% set grupos = {} %}
+
+                            {% for row in resultados %}
+                                {% set clave = row.proveedor ~ '|' ~ row.fecha_compra %}
+                                {% if clave not in grupos %}
+                                    {% set _ = grupos.update({clave: []}) %}
+                                {% endif %}
+                                {% set _ = grupos[clave].append(row) %}
+                            {% endfor %}
+
+                            {# ==== 2. IMPRIMIR GRUPOS CON ROWSPAN ==== #}
+                            {% for clave, items in grupos.items() %}
+                                {% set proveedor = clave.split('|')[0] %}
+                                {% set fecha = clave.split('|')[1] %}
+                                {% set span = items|length %}
+
+                                {% for item in items %}
+                                <tr>
+                                    {% if loop.first %}
+                                        <td rowspan="{{ span }}" class="columna-agrupada">{{ proveedor }}</td>
+                                        <td rowspan="{{ span }}" class="columna-agrupada">{{ fecha }}</td>
+                                    {% endif %}
+                                    <td>{{ item.materia_prima }}</td>
+                                    <td>{{ "%.2f"|format(item.cantidad) }}</td>
+                                    <td>{{ item.unidad }}</td>
+                                </tr>
+                                {% endfor %}
+
+                                <!-- Línea divisoria opcional -->
+                                <tr class="separador"><td colspan="5"></td></tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('reportes_reabastecimiento') }}" class="btn btn-volver">⬅ Regresar</a>
+
+                    <button id="btn-exportar-pdf" 
+                            class="btn btn-exportar"
+                            data-fecha-inicio="{{ fecha_inicio }}"
+                            data-fecha-final="{{ fecha_final }}">
+                            📄 Exportar a PDF
+                    </button>
+                </div>
+                {% else %}
+                <div class="alert alert-danger mt-4">
+                    No se encontraron resultados en el rango seleccionado.
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('reportes_reabastecimiento') }}" class="btn btn-volver">⬅ Regresar</a>
+                </div>
+
+                {% endif %}
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/administrador/reportesReabastecimiento.js') }}"></script>
+</body>
+</html>

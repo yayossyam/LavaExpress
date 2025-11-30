@@ -48,52 +48,36 @@
             </div>
         </header>
 
+        <!-- === NUEVO CONTENIDO SOLO FORM === -->
         <main class="content">
             <div class="reportes-config">
-                <h2>📊 REPORTE DE REABASTECIMIENTO</h2>
+                <h2>📊 GENERAR REPORTE DE REABASTECIMIENTO</h2>
+                <p class="subtitulo">Seleccione el rango de fechas para generar el reporte</p>
 
-                {% if inventario %}
-                <table class="table table-bordered table-striped mt-3">
-                    <thead class="table-primary">
-                        <tr>
-                            <th>ID</th>
-                            <th>Materia Prima</th>
-                            <th>Cantidad (UM)</th>
-                            <th>Cantidad Existente</th>
-                            <th>Stock Mínimo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for m in inventario %}
-                        <tr class="{% if m.CANTIDAD < m.STOCK_MINIMO %}table-danger{% endif %}">
-                            <td>{{ m.ID }}</td>
-                            <td>{{ m.NOMBRE }}</td>
-                            <td>{{ m.CANTIDAD_UM }} {{ m.UNIDAD }}</td>
-                            <td>{{ m.CANTIDAD }}</td>
-                            <td>{{ m.STOCK_MINIMO }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <form action="{{ url_for('reportes_reabastecimiento') }}" method="POST" class="reporte-form">
+                    <div class="fechas-row">
+                        <div class="campo-fecha">
+                            <label for="fechaInicio">Fecha Inicio</label>
+                            <input type="date" id="fechaInicio" name="fechaInicio" required>
+                        </div>
 
-                <div class="text-center mt-4 d-flex justify-content-center gap-3">
-                    <a href="{{ url_for('reportes') }}" class="btn btn-volver">
-                        ← Volver
-                    </a>
-                    <form action="{{ url_for('exportar_reporte_reabastecimiento') }}" method="GET" class="d-inline">
-                        <button type="submit" class="btn btn-exportar">
-                            📄 Exportar a PDF
-                        </button>
-                    </form>
-                </div>
-
-                {% else %}
-                    <div class="alert alert-warning mt-3">
-                        No se encontraron registros en el inventario.
+                        <div class="campo-fecha">
+                            <label for="fechaFinal">Fecha Final</label>
+                            <input type="date" id="fechaFinal" name="fechaFinal" required>
+                        </div>
                     </div>
-                {% endif %}
+
+                    <div class="btn-generar-container">
+                        <button type="submit" class="btn-back">Generar Reporte</button>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('reportes') }}" class="btn btn-volver">⬅ Regresar</a>
+                    </div>
+                </form>
             </div>
         </main>
+
     </div>
 </div>
 </body>

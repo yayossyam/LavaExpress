@@ -80,7 +80,10 @@
                         <select name="rol" id="rol" class="form-select" required>
                             <option value="" disabled selected>Selecciona una opción</option>
                             {% for rol in roles %}
-                                <option value="{{ rol.IDROL }}">{{ rol.NOMROL }}</option>
+                                <option value="{{ rol.IDROL }}" 
+                                    {% if rol.IDROL == usuario.IDROL %} selected {% endif %}>
+                                    {{ rol.NOMROL }}
+                                </option>
                             {% endfor %}
                         </select>
 

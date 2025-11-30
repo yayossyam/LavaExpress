@@ -17,6 +17,7 @@ document.getElementById("btnEliminarConfirm").addEventListener("click", (e) => {
             .then(data => {
                 if (data.success) {
                     // Recargar página para reflejar cambios
+                    localStorage.setItem("msg_exito", "Pedido eliminado correctamente");
                     window.location.href = "/pedidos"; 
                 } else {
                     alert("❌ Error al eliminar el pedido: " + (data.message || ""));
