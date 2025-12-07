@@ -225,6 +225,19 @@ def register():
             #Creamos cursor
             cur=mysql.connection.cursor()
 
+            # Validación de campos vacíos (APEGO TOTAL A TU ESTRUCTURA)
+            if nombre == "" or apaterno == "" or correo == "" or password == "":
+                flash("❌ No puedes dejar campos vacíos.", "danger")
+                return redirect(url_for('register'))
+            
+            if len(correo) > 50:
+                flash("❌ El correo no puede exceder 50 caracteres.", "danger")
+                return redirect(url_for('register'))
+            
+            if len(password) > 50:
+                flash("❌ La contraseña no puede exceder 50 caracteres.", "danger")
+                return redirect(url_for('register'))
+
             # Validación de contraseña mínima
             if len(password) < 8:
                 flash("❌ La contraseña debe tener al menos 8 caracteres", "danger")
@@ -306,6 +319,19 @@ def inicioAdmin():
             #Creamos instancia BD
             cur = mysql.connection.cursor()
 
+            # Validación de campos vacíos (APEGO TOTAL A TU ESTRUCTURA)
+            if nombre == "" or apellido == "" or rol == "":
+                flash("❌ No puedes dejar campos vacíos.", "danger")
+                return redirect(url_for('inicioAdmin'))
+            
+            if len(correo) > 50:
+                flash("❌ El correo no puede exceder 50 caracteres.", "danger")
+                return redirect(url_for('inicioAdmin'))
+            
+            if len(contra) > 50:
+                flash("❌ La contraseña no puede exceder 50 caracteres.", "danger")
+                return redirect(url_for('inicioAdmin'))
+
             # Validación de contraseña mínima
             if len(contra) < 8:
                 flash("(❌ La contraseña debe tener al menos 8 caracteres)", "danger")
@@ -345,7 +371,7 @@ def inicioAdmin():
 
             return redirect(url_for('inicioAdmin'))
     except Exception as e:
-        flash("❌ Complete todos los campos", "danger")
+        flash("❌ Ocurrio un error en el sistema", "danger")
         return redirect(url_for('inicioAdmin'))
 
 
@@ -401,9 +427,30 @@ def editar_usuarios(idusuario):
         if nombre == "" or apellido == "" or rol == "":
             flash("❌ No puedes dejar campos vacíos.", "danger")
             return redirect(url_for('editar_usuarios', idusuario=idusuario))
+        
+        # Validación de longitud de los campos
+        if len(nombre) > 50:
+            flash("❌ El nombre no puede exceder 50 caracteres.", "danger")
+            return redirect(url_for('editar_usuarios', idusuario=idusuario))
+        
+        if len(apellido) > 50:
+            flash("❌ El apellido no puede exceder 50 caracteres.", "danger")
+            return redirect(url_for('editar_usuarios', idusuario=idusuario))
+
 
         #Creamos instancia BD
         cur = mysql.connection.cursor()
+
+        # Validación de Nombre + Apellido existente en otro usuario
+        cur.execute("""SELECT IDUSER
+                        FROM USUARIO
+                        WHERE NOMBRE = %s AND APATERNO = %s AND IDUSER != %s""", (nombre, apellido, idusuario))
+        existe = cur.fetchone()
+
+        if existe:
+            flash("❌ Ya existe un usuario registrado con ese nombre y apellido.", "danger")
+            cur.close()
+            return redirect(url_for('editar_usuarios', idusuario=idusuario))
 
         #Generamos UPDATE
         cur.execute('UPDATE USUARIO SET IDROL = %s, NOMBRE = %s, APATERNO = %s WHERE IDUSER = %s', (rol, nombre, apellido, idusuario))
@@ -1228,6 +1275,14 @@ def proveedores():
         if not re.match(patron_correo, correo):
             flash("⚠️ El correo ingresado no es válido", "danger")
             return redirect(url_for('proveedores'))
+        
+        if len(correo) > 50:
+            flash("⚠️ El correo ingresado debe ser menor a 50 caracteres", "danger")
+            return redirect(url_for('proveedores'))
+        
+        if len(nombre) > 50:
+            flash("⚠️ El nombre ingresado debe ser menor a 50 caracteres", "danger")
+            return redirect(url_for('proveedores'))
 
         #Creamos instancia en la BD para generar consultas
         cur = mysql.connection.cursor()
@@ -1305,6 +1360,14 @@ def editar_proveedor(idproveedor):
         patron_correo = r"[^@]+@[^@]+\.[^@]+"
         if not re.match(patron_correo, correo):
             flash("⚠️ El correo ingresado no es válido", "danger")
+            return redirect(url_for('editar_proveedor', idproveedor=idproveedor))
+        
+        if len(correo) > 50:
+            flash("⚠️ El correo ingresado debe ser menor a 50 caracteres", "danger")
+            return redirect(url_for('editar_proveedor', idproveedor=idproveedor))
+        
+        if len(nombre) > 50:
+            flash("⚠️ El nombre ingresado debe ser menor a 50 caracteres", "danger")
             return redirect(url_for('editar_proveedor', idproveedor=idproveedor))
 
         #Creamos instancia de la BD
@@ -1608,6 +1671,10 @@ def categoriaPrendas():
             flash("⚠️ Todos los campos son obligatorios", "danger")
             return redirect(url_for('categoriaPrendas'))
         
+        if len(nombre) > 50:
+            flash("⚠️ El nombre ingresado debe ser menor a 50 caracteres", "danger")
+            return redirect(url_for('categoriaPrendas'))
+        
         # Validar que kgmaximo sea entero
         if not kgmaximo.isdigit():
             flash("⚠️ El KG máximo debe ser un número entero", "danger")
@@ -1694,6 +1761,10 @@ def editar_categoria(idcategoria):
         # Nombre vacío
         if not nombre or not kgmaximo or not preciokg:
             flash("⚠️ Todos los campos son obligatorios", "danger")
+            return redirect(request.url)
+        
+        if len(nombre) > 50:
+            flash("⚠️ El nombre ingresado debe ser menor a 50 caracteres", "danger")
             return redirect(request.url)
         
         # Validar nombre repetido 
@@ -1797,8 +1868,12 @@ def catalogoPrendas():
 
             # Validación de los campos
             if not (nombre and idcategoria and iduser):
-                flash("Campos obligatorios", "danger")
+                flash("⚠️ Campos obligatorios", "danger")
                 return redirect(url_for('catalogoPrendas'))
+            elif len(nombre) > 50:
+                flash("⚠️ El nombre ingresado debe ser menor a 50 caracteres", "danger")
+                return redirect(request.url)
+            
             
             # Validación de Nombre de Prenda, Formato
             import re
@@ -1806,6 +1881,7 @@ def catalogoPrendas():
             if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$', nombre):
                 flash("❌ El nombre de la prenda solo puede contener letras", "danger")
                 return redirect(url_for('catalogoPrendas'))
+            
             
             #Creamos intancia BD
             cur = mysql.connection.cursor()
@@ -3030,6 +3106,10 @@ def roles():
         #Capturamos el nuevo rol
         nombre = request.form['nombre']
 
+        if len(nombre) > 50:
+            flash("❌ El nombre no debe exceder los 50 caracteres", "danger")
+            return redirect(url_for('roles'))
+
         #Creamos nuevo cursor de bd. objeto que permitirá realizar CRUD en la BD
         cur = mysql.connection.cursor()
 
@@ -3095,10 +3175,26 @@ def editar_rol(idrol):
 
     if request.method == 'POST':
         #Capturamos los datos del formulario
-        nombre = request.form['nombre']
+        nombre = request.form['nombre'].strip()
 
         #Creamos instancia de BD
         cur = mysql.connection.cursor()
+
+        # Validaciones
+        if nombre == "":
+            flash("❌ El campo nombre es obligatorio", "danger")
+            return redirect(url_for('editar_rol', idrol=idrol))
+        
+        if len(nombre) > 50:
+            flash("❌ El nombre no debe exceder los 50 caracteres", "danger")
+            return redirect(url_for('editar_rol', idrol=idrol))
+        
+        cur.execute('SELECT * FROM ROLES WHERE NOMROL=%s AND IDROL!=%s', (nombre, idrol))
+        rol_duplicado = cur.fetchone()
+        if rol_duplicado:
+            flash("❌ El nombre del rol ya existe", "danger")
+            return redirect(url_for('editar_rol', idrol=idrol))
+        
 
         #Generamos un UPDATE
         cur.execute('UPDATE ROLES SET NOMROL=%s WHERE IDROL=%s', (nombre, idrol))
@@ -3185,6 +3281,28 @@ def materiaPrima():
         unidad = request.form['unidad'].strip()
         cantidadinput = request.form['cantidadum'].strip()
 
+        if not nombre or not stock or not unidad or not cantidadinput:
+            flash("⚠️ Todos los campos son obligatorios", "danger")
+            return redirect(url_for('materiaPrima'))
+        
+        if not stock.isdigit():
+            flash("⚠️ Solo se aceptan numeros enteros", "danger")
+            return redirect(url_for('materiaPrima'))
+        
+        if not cantidadinput.isdigit():
+            flash("⚠️ Solo se aceptan numeros enteros", "danger")
+            return redirect(url_for('materiaPrima'))
+        
+        stock = int(stock)
+        cantidadinput = int(cantidadinput)
+        if stock < 0 or cantidadinput < 0:
+            flash("⚠️ Los valores no pueden ser negativos.", "danger")
+            return redirect(url_for('materiaPrima'))
+        
+        if len(nombre) > 50:
+            flash("⚠️ El nombre de la materia prima no debe exceder los 50 caracteres", "danger")
+            return redirect(request.url)
+
         try:
             # Convertir a base (solo litros / kg)
             cantidadum = convertir_a_unidad_base(cantidadinput)
@@ -3269,12 +3387,34 @@ def editar_materia(idmateriaprima):
         unidad = request.form['unidad'].strip()
         cantidadum_input = request.form['cantidadum'].strip()  # valor ingresado en el form
 
+        if len(nombre) > 50:
+            flash("⚠️ El nombre no debe exceder los 50 caracteres")
+            return redirect(request.url)
+        
         # ===== CONVERTIR CANTIDAD DE UNIDAD A BASE =====
         try:
             cantidadum = convertir_a_unidad_base(cantidadum_input)
         except ValueError as e:
             flash(f"❌ {e}", "danger")
             return redirect(url_for('editar_materia', idmateriaprima=idmateriaprima))
+        
+                # ===== Validar que no exista otra materia prima igual =====
+        cur.execute('''
+            SELECT * 
+            FROM MATERIAPRIMA 
+            WHERE LOWER(NOMBREMATERIAPRIMA) = %s 
+            AND IDUNIDAD = %s 
+            AND CANTIDADUM = %s
+            AND IDMATERIAPRIMA != %s
+        ''', (nombre.lower(), unidad, cantidadum, idmateriaprima))
+
+        existente = cur.fetchone()
+
+        if existente:
+            flash("❌ Ya existe una materia prima con este nombre, unidad y cantidad.", "danger")
+            return redirect(url_for('editar_materia', idmateriaprima=idmateriaprima))
+
+        
 
         # Actualizar la materia prima
         cur.execute('''
