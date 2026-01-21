@@ -103,10 +103,10 @@
                         <h2>Nuevo servicio</h2>
                         <form class="new-form" action="{{ url_for('servicios')}}" method="POST">
                             <label for="nombre">Nombre:</label>
-                            <input type="text" id="nombre" name="nombre" placeholder="Nombre del servicio">
+                            <input type="text" id="nombre" name="nombre" placeholder="Nombre del servicio" required>
 
                             <label for="costo_kg">Costo por KG:</label>
-                            <input type="text" id="costo_kg" name="costo_kg" placeholder="Costo por kilogramo" step="0.01" required>
+                            <input type="text" id="costo_kg" name="costo_kg" placeholder="Costo por kilogramo" pattern="^[1-9]\d*(\.\d+)?$" title="Solo numeros positivos > 0" step="0.01" required>
 
                             <button type="submit" class="btn-save">Guardar</button>
                         </form>
