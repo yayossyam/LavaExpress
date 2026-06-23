@@ -1,9 +1,11 @@
 ### LAVAEXPRESS
 
-LavaExpress is a web system developed using the **RUP (RATIONAL UNIFIED PROCESS)** methodology for managing a laundry business. 
-The platform includes an authentication system (login) that allows identifying the user type and controlling access to system features. 
-The system is divided into two main roles: **Administrator and Client**, each with specific permissions.
-Additionally, it implements route protection, preventing unauthorized access to internal pages if the user is not logged in.
+<p align="justify">
+  LavaExpress is a web system developed using the **RUP (RATIONAL UNIFIED PROCESS)** methodology for managing a laundry business. 
+  The platform includes an authentication system (login) that allows identifying the user type and controlling access to system features. 
+  The system is divided into two main roles: **Administrator and Client**, each with specific permissions.
+  Additionally, it implements route protection, preventing unauthorized access to internal pages if the user is not logged in.
+</p>
 
 ### AUTHENTICATION SYSTEMS
 - User login system.
